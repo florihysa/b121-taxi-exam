@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CUT-Exam · B121 / BPT — OLR 2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* ===== Official CUT design tokens (asa Computer-Unterstützte Theorieprüfung) ===== */
+  :root{
+    --white:#ffffff;
+    --night-rider:#303030;      /* texts */
+    --dark-grey:#ababab;        /* lines, strokes */
+    --silver:#c6c6c6;           /* inactive states */
+    --white-smoke:#f1f1f1;      /* backgrounds */
+    --mariner:#355da6;          /* buttons / primary */
+    --mariner-light:#afbedb;
+    --mahogany:#d73b40;         /* failed, errors */
+    --medium-orchid:#af61c6;    /* marked content */
+    --deep-lilac:#9849af;
+    --jungle-green:#289b7c;     /* passed, accepted */
+    --tropical-rain-forest:#027d5c;
+
+    --primary-text-color:var(--night-rider);
+    --line-color:var(--dark-grey);
+    --inactive-color:var(--silver);
+    --shared-background-color:var(--white-smoke);
+    --button-color:var(--mariner);
+    --error-color:var(--mahogany);
+    --marked-content-color:var(--medium-orchid);
+    --test-accepted-color:var(--jungle-green);
+  }
+  *{box-sizing:border-box;}
+  html{height:100%;}
+  body{
+    width:100vw; margin:0;
+    -webkit-tap-highlight-color:transparent;
+    user-select:none; cursor:default;
+    background-color:white; color:var(--primary-text-color);
+    font-family:'Roboto Condensed','Roboto',sans-serif;
+    font-style:normal; font-weight:400;
+    overflow-x:hidden;
+  }
+  .header{
+    height:80px; padding:0 60px; background-color:var(--white-smoke);
+    display:flex; flex-direction:row; align-items:center;
+  }
+  .footer{
+    position:fixed; bottom:0; left:0; right:0; height:80px; padding:0 60px;
+    background-color:var(--white-smoke);
+    display:flex; flex-direction:row; align-items:center;
+  }
+  .justified{justify-content:space-between;}
+  .scrollpanel{
+    overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch;
+    position:absolute; top:80px; bottom:80px; left:0; right:0;
+  }
+  .scrollpanel-noheader{top:0;}
+  /* paper-button replica */
+  .pbtn{
+    display:inline-flex; align-items:center; justify-content:center; gap:6px;
+    font-family:inherit; font-size:14px; font-weight:500; letter-spacing:.2px;
+    color:var(--mariner); background:#fff; border:none; border-radius:5px;
+    padding:10px 16px; min-width:64px; cursor:pointer; text-transform:none;
+    box-shadow:0 2px 2px 0 rgba(0,0,0,.14),0 1px 5px 0 rgba(0,0,0,.12),0 3px 1px -2px rgba(0,0,0,.2);
+    transition:box-shadow .15s;
+  }
+  .pbtn:active{box-shadow:0 4px 5px 0 rgba(0,0,0,.14),0 1px 10px 0 rgba(0,0,0,.12),0 2px 4px -1px rgba(0,0,0,.3);}
+  .pbtn.invert{background:var(--mariner); color:white;}
+  .pbtn.flat{box-shadow:none; background:transparent;}
+  .pbtn.bookmarkbtn{color:var(--marked-content-color);}
+  .pbtn svg{width:20px; height:20px; fill:currentColor; flex:0 0 auto;}
+  /* icon button (navigation chevrons) */
+  .navbtn{
+    border:none; cursor:pointer; color:white; background-color:var(--button-color);
+    width:50px; height:50px; padding:8px;
+  }
+  .navbtn svg{width:100%; height:100%; fill:white;}
+  .navbtn.back{border-radius:0 5px 5px 0;}
+  .navbtn.forward{border-radius:5px 0 0 5px;}
+  .navbtn:disabled{background-color:var(--silver); cursor:default;}
+  /* login-info block (top right on start screens) */
+  .logininfo{
+    position:absolute; top:8px; right:44px; font-size:13px; line-height:1.3;
+  }
+  .logininfo td{padding:1px 0;}
+  .logininfo td:first-child{padding-right:24px;}
+  .logininfo td:last-child{font-weight:700;}
+  /* ===== language selection ===== */
+  .langpage{position:absolute; top:60px; left:0; right:0; display:flex; flex-direction:column; align-items:center;}
+  .langcards{margin-top:75px; display:flex; gap:14px; flex-wrap:wrap; justify-content:center; max-width:400px;}
+  .langcard{
+    width:170px; padding:22px 0; text-align:center; background:#fff; border:none; cursor:pointer;
+    color:var(--mariner); font-family:inherit; font-size:14px; font-weight:500; border-radius:2px;
+    box-shadow:0 2px 2px 0 rgba(0,0,0,.14),0 1px 5px 0 rgba(0,0,0,.12),0 3px 1px -2px rgba(0,0,0,.2);
+  }
+  /* ===== start screen ===== */
+  .startpage{padding:26px 20px 100px; text-align:center;}
+  .startpage h1{font-size:24px; font-weight:700; margin:34px 0 0;}
+  .startpage .goodluck{margin-top:34px; font-size:15px;}
+  .startpage .disclaimer{margin:28px auto 0; max-width:820px; color:var(--mahogany); font-size:15px; line-height:1.5;}
+  .examtable{
+    margin:36px auto 0; border-top:1px solid var(--white-smoke); border-bottom:1px solid var(--white-smoke);
+    padding:22px 0; max-width:760px; text-align:left; font-size:14px;
+  }
+  .examtable table{margin:0 auto; border-collapse:collapse;}
+  .examtable td{padding:3px 0; vertical-align:top;}
+  .examtable td:first-child{font-weight:700; padding-right:80px; white-space:nowrap;}
+  .startbtn{margin-top:40px;}
+  /* ===== exam screen ===== */
+  .examcontainer{height:100%; display:flex; flex-direction:row;}
+  .self-center{align-self:center;}
+  .exampage{flex:1; min-width:0;}
+  .content{padding:0 60px; display:flex; flex-direction:column;}
+  .title{
+    margin-top:10px; padding-bottom:10px; border-bottom:2px solid var(--shared-background-color);
+    display:flex; flex-direction:row; align-items:center;
+  }
+  .titleText{font-weight:700; font-size:15px;}
+  .flexspacer{flex:1;}
+  .qcols{display:flex; flex-direction:row; gap:0;}
+  .contentLeft{padding:20px 20px 0 0; display:flex; flex-direction:column; flex:1; min-width:0;}
+  .contentRight{padding:20px 0 0 20px; flex:1; min-width:0;}
+  .questionTitle{font-size:large; margin-bottom:10px; line-height:normal;}
+  /* answers — official CUT styles */
+  .answer{
+    margin:5px 0 5px 0; padding:20px; border:1px solid #fff;
+    display:flex; flex-direction:row; align-items:flex-start; cursor:pointer;
+  }
+  .answer span.atext{margin-top:5px; font-size:14px; line-height:1.4;}
+  .answer.selected{
+    border:1px solid var(--inactive-color);
+    box-shadow:0 0 1px 0 rgba(0,0,0,.12),0 1px 2px 0 rgba(0,0,0,.12),0 2px 1px -2px rgba(0,0,0,.2);
+  }
+  /* paper-checkbox replica: 30px */
+  .pcheck{
+    display:inline-block; flex:0 0 30px; width:30px; height:30px; margin-right:16px; position:relative;
+    border:2px solid var(--silver); border-radius:2px; background:#fff;
+  }
+  .answer.checked .pcheck{background:var(--mariner); border-color:var(--mariner);}
+  .answer.checked .pcheck::after{
+    content:''; position:absolute; left:9px; top:2px; width:8px; height:17px;
+    border:solid white; border-width:0 3px 3px 0; transform:rotate(45deg);
+  }
+  /* review mode rings (official .correct / .incorrect) */
+  .ring{
+    display:inline-flex; align-items:center; padding:8px 0px 8px 8px; margin-right:8px; margin-left:-11px;
+    border:3px solid transparent; border-radius:26px; max-height:52px;
+  }
+  .correct .ring{border-color:var(--test-accepted-color);}
+  .incorrect .ring{border-color:var(--error-color);}
+  @keyframes ringPop{0%{transform:scale(.4);opacity:0}60%{transform:scale(1.18);opacity:1}100%{transform:scale(1);opacity:1}}
+  .ring.anim{animation:ringPop .45s cubic-bezier(.2,.8,.3,1.25);}
+  @keyframes flashGood{0%{background:rgba(40,155,124,.28)}100%{background:transparent}}
+  @keyframes flashBad{0%{background:rgba(215,59,64,.26)}40%{transform:translateX(-4px)}60%{transform:translateX(4px)}100%{background:transparent;transform:translateX(0)}}
+  .answer.flashgood{animation:flashGood .9s ease-out;}
+  .answer.flashbad{animation:flashBad .6s ease-out;}
+  .ring .pcheck{margin-right:8px;}
+  /* header widgets */
+  .hstack{display:flex; flex-direction:column; font-size:13px; line-height:1.5;}
+  .hstack .row{display:flex; align-items:center; gap:6px;}
+  .questionBookmarked{color:var(--marked-content-color);}
+  .questionAnswered{color:var(--button-color);}
+  .hstack svg{width:18px; height:18px; fill:currentColor;}
+  /* cut-time-progress replica */
+  .timewrap{margin-left:40px;}
+  .cut-time{width:20vw; min-width:170px; height:40px; background:var(--white); position:relative; overflow:hidden;}
+  .cut-time .fill{position:absolute; left:0; top:0; bottom:0; background:var(--inactive-color);}
+  .cut-time .label{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:space-around;
+    font-size:14px; z-index:1;
+  }
+  .cut-time .label.critical{color:var(--error-color);}
+  /* ===== overview (Fragenübersicht) ===== */
+  .ovwrap{padding:0 0 60px 60px;}
+  .list-item{display:inline-table; margin:0 20px 0 0; width:calc(20% - 32px);}
+  .list-item .flag{
+    position:relative; width:36px; height:36px; top:40px; left:10px; z-index:1000;
+    color:var(--marked-content-color); display:block;
+  }
+  .list-item .flag svg{width:36px; height:36px; fill:currentColor;}
+  .list-item .flag.hiddenflag{visibility:hidden;}
+  .ovbtn{width:100%; padding:15px; margin-bottom:6px;}
+  .ovbtn .button-text{width:100%; text-align:center;}
+  .ovbtn.answered{color:#fff;}
+  .infoText{display:inline-block; width:100px; padding:2px 0;}
+  .infoValue{font-weight:700;}
+  /* ===== dialogs (paper-dialog replica) ===== */
+  .backdrop{
+    position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:50;
+    display:none; align-items:center; justify-content:center;
+  }
+  .backdrop.open{display:flex;}
+  .pdialog{
+    background:#fff; border-radius:2px; min-width:420px; max-width:620px; padding:24px;
+    box-shadow:0 16px 24px 2px rgba(0,0,0,.14),0 6px 30px 5px rgba(0,0,0,.12),0 8px 10px -5px rgba(0,0,0,.4);
+    font-size:15px; line-height:1.5;
+  }
+  .pdialog .dlgbuttons{display:flex; justify-content:flex-end; gap:10px; margin-top:24px;}
+  /* ===== result ===== */
+  .resultpage{padding:26px 20px 120px; text-align:center;}
+  .resultpage h1{font-size:24px; font-weight:700; margin:34px 0 0;}
+  .verdict{font-size:26px; font-weight:700; margin-top:8px;}
+  .verdict.pass{color:var(--tropical-rain-forest);}
+  .verdict.fail{color:var(--mahogany);}
+  .reviewwrap{max-width:900px; margin:30px auto 0; text-align:left;}
+  .reviewwrap h2{font-size:16px; border-bottom:2px solid var(--shared-background-color); padding-bottom:8px;}
+  .rquestion{margin:26px 0 6px; font-size:15px; font-weight:700; line-height:1.4;}
+  .rquestion .qnum{color:var(--mariner);}
+  .reviewwrap .answer{cursor:default; padding:10px 14px;}
+  .reviewwrap .answer .pcheck{transform:scale(.8); transform-origin:left center;}
+  .rmarkedflag{color:var(--marked-content-color); font-size:13px;}
+  .explain{
+    font-size:13px; color:var(--night-rider); background:var(--white-smoke);
+    border-left:3px solid var(--mariner); padding:10px 14px; margin:8px 0 2px; line-height:1.55;
+  }
+  @media (max-width:860px){
+    .header,.footer{padding:0 14px;}
+    .content{padding:0 14px;}
+    .qcols{flex-direction:column;}
+    .contentLeft,.contentRight{padding:14px 0 0 0;}
+    .timewrap{margin-left:10px;}
+    .list-item{width:calc(33% - 24px);}
+    .pdialog{min-width:0; margin:0 12px;}
+    .logininfo{right:12px;}
+    .hstack{display:none;}
+  }
+  .artref{font-size:12px; color:var(--dark-grey); margin-left:8px; font-weight:400; white-space:nowrap;}
+  .verdict:not(.pass):not(.fail){color:var(--mariner);}
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<script>
+/* ================= ICONS (Material, as used by CUT) ================= */
+const IC = {
+  menu:'<svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>',
+  bookmark:'<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>',
+  check:'<svg viewBox="0 0 24 24"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg>',
+  help:'<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg>',
+  chevL:'<svg viewBox="0 0 24 24"><path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>',
+  chevR:'<svg viewBox="0 0 24 24"><path d="M10 6 8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>',
+  flag:'<svg viewBox="0 0 24 24"><path d="M14.4 6 14 4H5v17h2v-7h5.6l.4 2h7V6z"/></svg>',
+  close:'<svg viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>',
+  lang:'<svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm6.93 6h-2.95c-.32-1.25-.78-2.45-1.38-3.56 1.84.63 3.37 1.91 4.33 3.56zM12 4.04c.83 1.2 1.48 2.53 1.91 3.96h-3.82c.43-1.43 1.08-2.76 1.91-3.96zM4.26 14C4.1 13.36 4 12.69 4 12s.1-1.36.26-2h3.38c-.08.66-.14 1.32-.14 2 0 .68.06 1.34.14 2H4.26zm.82 2h2.95c.32 1.25.78 2.45 1.38 3.56-1.84-.63-3.37-1.9-4.33-3.56zm2.95-8H5.08c.96-1.66 2.49-2.93 4.33-3.56C8.81 5.55 8.35 6.75 8.03 8zM12 19.96c-.83-1.2-1.48-2.53-1.91-3.96h3.82c-.43 1.43-1.08 2.76-1.91 3.96zM14.34 14H9.66c-.09-.66-.16-1.32-.16-2 0-.68.07-1.35.16-2h4.68c.09.65.16 1.32.16 2 0 .68-.07 1.34-.16 2zm.25 5.56c.6-1.11 1.06-2.31 1.38-3.56h2.95c-.96 1.65-2.49 2.93-4.33 3.56zM16.36 14c.08-.66.14-1.32.14-2 0-.68-.06-1.34-.14-2h3.38c.16.64.26 1.31.26 2s-.1 1.36-.26 2h-3.38z"/></svg>'
+};
+
+/* ================= UI STRINGS — official CUT catalog (EN from the app; IT verbatim from the app where available) ================= */
+const UI = {
+  en:{
+    loggedIn:'Logged in:', category:'Category:', device:'Device:',
+    selectLang:['Selektieren Sie eine Sprache','Select a language','Seleziona una lingua'],
+    startTitle:'Exam start',
+    goodLuck:'The exam has a time limit. Good luck!',
+    disclaimer:'Independent practice exam for the B121 / BPT additional theory exam (OLR 2). These are not the official asa questions. The correct answer is shown right after each answer. Exam format (30 questions, 3 options, max. 3 mistakes, 45 minutes) matches the official exam.',
+    yourExam:'Your exam:', catValue:'Category B121 (BPT) — ARV2 / SR 822.222',
+    oneAnswer:'Only one answer per question is correct.',
+    numQuestions:'Number of questions:', maxScore:'Max. score:', maxMistakes:'Max. mistakes:', time:'Time:',
+    minutes:'45 minutes',
+    startExam:'Start exam',
+    question:'Question', of:'of',
+    bookmark:'Bookmark Question', removeBookmark:'Remove bookmark',
+    overview:'Questions overview', closeOverview:'Close overview',
+    answered:n=>`${n} questions answered`,
+    marked:n=>`${n} question(s) bookmarked`,
+    remaining:'Remaining time:',
+    closeExam:'Close exam', closeNow:'Close now', doNotClose:'Do not close',
+    confirmAll:'Your exam will now terminate. You can not undo this step.',
+    confirmMissing:'Are you sure you want to finish the exam? You have not answered all the questions yet. This step can not be undone.',
+    timeUp:'Your time is up.',
+    examResult:'Exam result:', passed:'Passed', failed:'Failed',
+    score:'Score:', mistakes:'Mistakes:',
+    newExam:'New exam', review:'Review',
+    legend:'<span style="color:var(--test-accepted-color); font-weight:700;">Green ring</span> = the correct answer (answer key) &nbsp;·&nbsp; <span style="color:var(--error-color); font-weight:700;">Red ring</span> = your wrong answer &nbsp;·&nbsp; <b>Checked box</b> = what you selected. Unanswered questions count as mistakes.',
+    help:'Help',
+    helpTexts:[
+      ['Questions overview','Here you get an overall view of your exam.'],
+      ['Bookmark','Here you can bookmark questions you are still unsure about.'],
+      ['Remaining time','Here you can see how much time you have left for your exam.'],
+      ['Close exam','This function ends the exam. Make sure that all questions are answered.']
+    ],
+    notAnswered:'Not answered',
+    ok:'OK', cat:{T:'Terms',P:'Scope',O:'Working, driving & rest time',C:'Checks',V:'Misc.'}, exit:'Back to start',
+    training:'',trainingDesc:'',allTopics:'',instantFeedback:'',fbOn:'',realMode:'',next:'Next',finishTraining:'',trainingResult:'',correctCount:'',wrongCount:'',byTopic:'',correctLbl:'',questionsLbl:'',restart:'',poolInfo:n=>''
+  },
+  it:{
+    loggedIn:'Connesso:', category:'Categoria:', device:'Dispositivo:',
+    selectLang:['Selektieren Sie eine Sprache','Select a language','Seleziona una lingua'],
+    startTitle:'Inizio esame',
+    goodLuck:'L\'esame ha un limite di tempo. Buona fortuna!',
+    disclaimer:'Esame di prova indipendente per l\'esame di teoria complementare B121 / TPP (OLR 2). Non sono le domande ufficiali asa. La risposta corretta appare subito dopo ogni risposta. Il formato (30 domande, 3 risposte, max. 3 errori, 45 minuti) corrisponde all\'esame ufficiale.',
+    yourExam:'Il vostro esame:', catValue:'Categoria B121 (TPP) — OLR2 / RS 822.222',
+    oneAnswer:'Per ogni domanda, una sola risposta è corretta.',
+    numQuestions:'Numero delle domande:', maxScore:'Punteggio massimo:', maxMistakes:'Punteggio degli errori massimi:', time:'Tempo:',
+    minutes:'45 minuti',
+    startExam:'Inizio esame',
+    question:'Domanda', of:'di',
+    bookmark:'Marcare domanda', removeBookmark:'Rimuovere demarcazione',
+    overview:'Panoramica delle domande', closeOverview:'Chiudere la panoramica',
+    answered:n=>`${n} domande trattate`,
+    marked:n=>`${n} domanda/e marcata/e`,
+    remaining:'Tempo restante:',
+    closeExam:'Concludere l\'esame', closeNow:'Terminare ora', doNotClose:'Non terminare',
+    confirmAll:'Il vostro esame ora viene concluso. Questo passo è irriversibile.',
+    confirmMissing:'Siete sicuri di voler concludere l\'esame? Non avete ancora risposto a tutte le domande. Questo passo è irriversibile.',
+    timeUp:'Il vostro tempo è scaduto.',
+    examResult:'Risultato dell\'esame:', passed:'Superato', failed:'Non superato',
+    score:'Punteggio:', mistakes:'Punteggio degli errori:',
+    newExam:'Nuovo esame', review:'Revisione',
+    legend:'<span style="color:var(--test-accepted-color); font-weight:700;">Anello verde</span> = la risposta corretta (chiave delle soluzioni) &nbsp;·&nbsp; <span style="color:var(--error-color); font-weight:700;">Anello rosso</span> = la tua risposta sbagliata &nbsp;·&nbsp; <b>Casella spuntata</b> = ciò che hai selezionato. Le domande senza risposta contano come errori.',
+    help:'Aiuto',
+    helpTexts:[
+      ['Panoramica delle domande','Tramite questo tasto otterrete una panoramica su tutte le domande d\'esame.'],
+      ['Marcare','Qui potete marcare le domande, dove avete ancora dei dubbi.'],
+      ['Tempo restante','Il tempo a disposizione per l\'esame. Questa informazione può essere fatta apparire o sparire.'],
+      ['Concludere l\'esame','Con questa funzione l\'esame viene concluso. Assicuratevi di aver risposto a tutte le domande.']
+    ],
+    notAnswered:'Nessuna risposta',
+    ok:'OK', cat:{T:'Termini',P:'Portata',O:'Orari',C:'Controllo',V:'Varie'}, exit:'Torna all\'inizio',
+    training:'',trainingDesc:'',allTopics:'',instantFeedback:'',fbOn:'',realMode:'',next:'Avanti',finishTraining:'',trainingResult:'',correctCount:'',wrongCount:'',byTopic:'',correctLbl:'',questionsLbl:'',restart:'',poolInfo:n=>''
+  }
+};
+
+/* ================= QUESTION POOL — correct answer always index 0, shuffled at runtime.
+   c = topic (T Termini, P Portata, O Orari, C Controllo, V Varie); art = legal basis (OLR 2 unless stated).
+   Keyed against OLR 2 (RS 822.222, state 01.03.2025), OLR 1 via Art. 16a, ONC, OETV. ================= */
+const POOL = [
+/* ===== TERMINI / DEFINIZIONI ===== */
+{c:'T',art:'Art. 1',it:{q:"Cosa regola l'OLR 2?",a:["Lavoro, guida e riposo dei conducenti professionali di veicoli leggeri, i controlli e i doveri dei datori di lavoro","Solo la durata della guida","Tariffe e licenze dei taxi"]},en:{q:"What does the OLR 2 regulate?",a:["Working, driving and rest time of professional drivers of light vehicles, checks and employer duties","Only driving time","Taxi fares and licences"]},x:{it:"Art. 1 cpv. 1.",en:"Art. 1 para. 1."}},
+{c:'T',art:'Art. 2 lett. a',it:{q:"Chi è «conducente» secondo l'OLR 2?",a:["Chi guida un veicolo dell'art. 3, anche per breve tempo","Solo chi guida almeno 1 ora al giorno","Solo chi ha un libretto di lavoro"]},en:{q:"Who is a “driver” under the OLR 2?",a:["Anyone who drives a vehicle under Art. 3, even briefly","Only someone driving at least 1 hour a day","Only someone holding a work record book"]},x:{it:"Art. 2 cpv. 2 lett. a.",en:"Art. 2 para. 2 let. a."}},
+{c:'T',art:'Art. 2 lett. b',it:{q:"Chi è il conducente indipendente?",a:["Chi non è al servizio di un datore di lavoro e decide da sé sull'uso del veicolo","Chi guida un veicolo di proprietà del datore di lavoro","Chi lavora più di 48 ore a settimana"]},en:{q:"Who is a self-employed driver?",a:["Someone not in an employer's service who decides on the use of the vehicle themselves","Someone driving a vehicle owned by the employer","Someone working more than 48 hours a week"]},x:{it:"Art. 2 cpv. 2 lett. b.",en:"Art. 2 para. 2 let. b."}},
+{c:'T',art:'Art. 2 lett. b',it:{q:"In caso di dubbio (contratto di noleggio con autista), cosa è determinante?",a:["La situazione reale del rapporto d'impiego","Quanto scritto nel contratto","La licenza di circolazione"]},en:{q:"In case of doubt (hire contract with driver), what is decisive?",a:["The real employment situation","What the contract says","The vehicle registration document"]},x:{it:"Art. 2 cpv. 2 lett. b.",en:"Art. 2 para. 2 let. b."}},
+{c:'T',art:'Art. 2 lett. b',it:{q:"Il coniuge e i figli del proprietario dell'azienda che guidano sono...",a:["Conducenti indipendenti","Lavoratori","Conducenti a titolo accessorio"]},en:{q:"The spouse and children of the business owner who drive are...",a:["Self-employed drivers","Employees","Secondary-occupation drivers"]},x:{it:"Art. 2 cpv. 2 lett. b: coniuge, ascendenti/discendenti e loro coniugi, figli del coniuge.",en:"Art. 2 para. 2 let. b: spouse, ascendants/descendants and their spouses, stepchildren."}},
+{c:'T',art:'Art. 2 lett. c',it:{q:"Chi è «lavoratore»?",a:["Chi non è conducente indipendente, in particolare chi guida al servizio di un datore di lavoro","Chi guida il proprio veicolo","Chi lavora meno di 48 ore a settimana"]},en:{q:"Who is an “employee”?",a:["Anyone who is not a self-employed driver, in particular anyone driving in an employer's service","Anyone driving their own vehicle","Anyone working less than 48 hours a week"]},x:{it:"Art. 2 cpv. 2 lett. c.",en:"Art. 2 para. 2 let. c."}},
+{c:'T',art:'Art. 2 lett. d',it:{q:"Chi è «datore di lavoro»?",a:["Chi, come proprietario d'azienda o superiore, può dare ordini al conducente","Solo il proprietario del veicolo","Chi paga il carburante"]},en:{q:"Who is an “employer”?",a:["Whoever, as business owner or superior, can give orders to the driver","Only the vehicle owner","Whoever pays for the fuel"]},x:{it:"Art. 2 cpv. 2 lett. d.",en:"Art. 2 para. 2 let. d."}},
+{c:'T',art:'Art. 2 lett. e',it:{q:"Cos'è la «durata del lavoro»?",a:["Il tempo in cui il lavoratore è a disposizione del datore di lavoro, compresi presenza e interruzioni sotto 15 minuti","Solo il tempo di guida","Il tempo dall'uscita di casa al rientro"]},en:{q:"What is “working time”?",a:["The time the employee is at the employer's disposal, including standby and interruptions under 15 minutes","Only driving time","The time from leaving home to returning"]},x:{it:"Art. 2 cpv. 2 lett. e.",en:"Art. 2 para. 2 let. e."}},
+{c:'T',art:'Art. 2 lett. e',it:{q:"Una pausa inferiore a 15 minuti conta come...",a:["Tempo di lavoro","Pausa","Riposo"]},en:{q:"A break of less than 15 minutes counts as...",a:["Working time","A break","Rest"]},x:{it:"Art. 2 cpv. 2 lett. e.",en:"Art. 2 para. 2 let. e."}},
+{c:'T',art:'Art. 2 lett. e',it:{q:"Il lavoro svolto per un altro datore di lavoro conta come durata del lavoro?",a:["Sì, sempre","No","Solo se è trasporto di persone"]},en:{q:"Does work for another employer count as working time?",a:["Yes, always","No","Only if it is passenger transport"]},x:{it:"Art. 2 cpv. 2 lett. e.",en:"Art. 2 para. 2 let. e."}},
+{c:'T',art:'Art. 2 lett. f',it:{q:"Cos'è la «durata della guida»?",a:["Il tempo in cui il conducente guida il veicolo","Il tempo di guida più l'attesa dei clienti","Il tempo di lavoro meno le pause"]},en:{q:"What is “driving time”?",a:["The time the driver is driving the vehicle","Driving time plus waiting for customers","Working time minus breaks"]},x:{it:"Art. 2 cpv. 2 lett. f.",en:"Art. 2 para. 2 let. f."}},
+{c:'T',art:'Art. 2 lett. g',it:{q:"Cos'è l'«attività professionale» per l'indipendente?",a:["La durata della guida","La durata del lavoro","Il tempo di attesa"]},en:{q:"What is “professional activity” for a self-employed driver?",a:["Driving time","Working time","Waiting time"]},x:{it:"Art. 2 cpv. 2 lett. g: lavoratore = durata del lavoro; indipendente = durata della guida.",en:"Art. 2 para. 2 let. g: employee = working time; self-employed = driving time."}},
+{c:'T',art:'Art. 2 lett. h',it:{q:"Chi è l'autorità di esecuzione?",a:["L'autorità cantonale competente per i controlli su strada e in azienda","L'USTRA","La polizia comunale"]},en:{q:"Who is the enforcement authority?",a:["The cantonal authority competent for road and business checks","The Federal Roads Office","The municipal police"]},x:{it:"Art. 2 cpv. 2 lett. h; art. 31.",en:"Art. 2 para. 2 let. h; Art. 31."}},
+{c:'T',art:'Art. 3 cpv. 1bis',it:{q:"Quando una corsa è «professionale»?",a:["Se è regolare e mira a un profitto economico","Se viene pagata, anche una sola volta","Se è effettuata con un taxi"]},en:{q:"When is a trip “professional”?",a:["If it is regular and aims at economic profit","If it is paid, even once","If it is made with a taxi"]},x:{it:"Art. 3 cpv. 1bis.",en:"Art. 3 para. 1bis."}},
+{c:'T',art:'Art. 3 cpv. 1bis',it:{q:"Quando le corse sono «regolari»?",a:["Almeno due volte a intervalli di meno di 16 giorni","Almeno due volte a intervalli di meno di 14 giorni","Almeno una volta al mese"]},en:{q:"When are trips “regular”?",a:["At least twice at intervals of less than 16 days","At least twice at intervals of less than 14 days","At least once a month"]},x:{it:"Art. 3 cpv. 1bis.",en:"Art. 3 para. 1bis."}},
+{c:'T',art:'Art. 3 cpv. 1bis',it:{q:"Quando c'è «profitto economico»?",a:["Se il prezzo supera le spese del veicolo e le spese del conducente","Se il prezzo copre le spese del veicolo","Se viene dato un qualsiasi pagamento"]},en:{q:"When is there “economic profit”?",a:["If the fare exceeds vehicle costs and the driver's expenses","If the fare covers vehicle costs","If any payment is made"]},x:{it:"Art. 3 cpv. 1bis.",en:"Art. 3 para. 1bis."}},
+{c:'T',art:'Art. 3 cpv. 1bis',it:{q:"Cosa sono le «spese del veicolo»?",a:["Ammortamento, carburante, tasse, assicurazioni, manutenzione","Solo il carburante","Il prezzo d'acquisto"]},en:{q:"What are “vehicle costs”?",a:["Depreciation, fuel, taxes, insurance, maintenance","Only fuel","The purchase price"]},x:{it:"Art. 3 cpv. 1bis. Spese del conducente: vitto, pernottamento, viaggio.",en:"Art. 3 para. 1bis. Driver's expenses: meals, accommodation, travel."}},
+{c:'T',art:'Art. 3 cpv. 1ter',it:{q:"Il noleggio di veicoli con autista è trasporto professionale di persone?",a:["Sì, è equiparato","No","Solo oltre 50 km"]},en:{q:"Is chauffeur-driven vehicle hire professional passenger transport?",a:["Yes, it is treated as such","No","Only over 50 km"]},x:{it:"Art. 3 cpv. 1ter.",en:"Art. 3 para. 1ter."}},
+
+/* ===== PORTATA / CAMPO D'APPLICAZIONE ===== */
+{c:'P',art:'Art. 3 cpv. 1',it:{q:"A quali veicoli si applica l'OLR 2?",a:["Autoveicoli leggeri, automobili pesanti, autobus fino a 16 posti oltre al conducente, quadricicli e tricicli a motore, usati per il trasporto professionale di persone","Tutti i veicoli a motore","Solo i taxi con tassametro"]},en:{q:"Which vehicles does the OLR 2 apply to?",a:["Light motor vehicles, heavy cars, buses up to 16 seats besides the driver, motor quadricycles and tricycles, used for professional passenger transport","All motor vehicles","Only taxis with a taximeter"]},x:{it:"Art. 3 cpv. 1.",en:"Art. 3 para. 1."}},
+{c:'P',art:'Art. 3 cpv. 1',it:{q:"Fino a quanti posti, oltre al conducente, un autobus rientra nell'OLR 2?",a:["16","8","9"]},en:{q:"Up to how many seats besides the driver does a bus fall under the OLR 2?",a:["16","8","9"]},x:{it:"Art. 3 cpv. 1. Oltre 16 → OLR 1.",en:"Art. 3 para. 1. Over 16 → OLR 1."}},
+{c:'P',art:'Art. 3 cpv. 1',it:{q:"Quante persone può trasportare un tassista con il codice 121?",a:["Al massimo 16 oltre al conducente, mai più dei posti nella licenza di circolazione","Al massimo 5","Quante ne entrano"]},en:{q:"How many people may a driver with code 121 carry?",a:["At most 16 besides the driver, never more than the seats in the registration document","At most 5","As many as fit"]},x:{it:"Art. 3 cpv. 1 OLR 2; ONC art. 60.",en:"Art. 3 para. 1 OLR 2; VRV Art. 60."}},
+{c:'P',art:'Art. 3 cpv. 4',it:{q:"In che misura l'OLR 2 vale per il datore di lavoro?",a:["Solo dove gli impone esplicitamente obblighi","Nella stessa misura del lavoratore","Per lui vale solo l'OLR 1"]},en:{q:"To what extent does the OLR 2 apply to the employer?",a:["Only where it explicitly imposes duties on them","To the same extent as the employee","Only the OLR 1 applies to them"]},x:{it:"Art. 3 cpv. 4.",en:"Art. 3 para. 4."}},
+{c:'P',art:'Art. 3 cpv. 2',it:{q:"Taxi svizzero con max 8 posti oltre al conducente all'estero: quale ordinanza vale?",a:["L'OLR 2, salvo accordi internazionali più severi","L'OLR 1","Nessuna"]},en:{q:"Swiss taxi with max 8 seats besides the driver abroad: which ordinance applies?",a:["The OLR 2, unless stricter international agreements apply","The OLR 1","None"]},x:{it:"Art. 3 cpv. 2.",en:"Art. 3 para. 2."}},
+{c:'P',art:'Art. 3 cpv. 2',it:{q:"Minibus svizzero con più di 8 posti oltre al conducente all'estero: quale ordinanza vale?",a:["L'OLR 1","L'OLR 2","Nessuna"]},en:{q:"Swiss minibus with more than 8 seats besides the driver abroad: which ordinance applies?",a:["The OLR 1","The OLR 2","None"]},x:{it:"Art. 3 cpv. 2.",en:"Art. 3 para. 2."}},
+{c:'P',art:'Art. 3 cpv. 3',it:{q:"Un conducente con veicolo immatricolato all'estero circola in Svizzera. Cosa deve rispettare?",a:["Gli art. 7–11 OLR 2 (guida, pause, riposo)","Tutta l'OLR 2, libretto compreso","Nulla dell'OLR 2"]},en:{q:"A driver with a foreign-registered vehicle drives in Switzerland. What must they observe?",a:["Arts. 7–11 OLR 2 (driving, breaks, rest)","The whole OLR 2, including the record book","Nothing of the OLR 2"]},x:{it:"Art. 3 cpv. 3.",en:"Art. 3 para. 3."}},
+{c:'P',art:'Art. 4 cpv. 1 lett. a',it:{q:"I conducenti di ambulanze sono soggetti all'OLR 2?",a:["No","Sì","Solo nelle corse urgenti"]},en:{q:"Are ambulance drivers subject to the OLR 2?",a:["No","Yes","Only on emergency trips"]},x:{it:"Art. 4 cpv. 1 lett. a.",en:"Art. 4 para. 1 let. a."}},
+{c:'P',art:'Art. 4 cpv. 1 lett. b',it:{q:"Veicoli fino a quale velocità massima per costruzione sono esclusi dall'OLR 2?",a:["30 km/h","45 km/h","25 km/h"]},en:{q:"Vehicles up to which design maximum speed are excluded from the OLR 2?",a:["30 km/h","45 km/h","25 km/h"]},x:{it:"Art. 4 cpv. 1 lett. b.",en:"Art. 4 para. 1 let. b."}},
+{c:'P',art:'Art. 4 cpv. 1 lett. c',it:{q:"Il trasporto professionale di disabili, scolari e operai è soggetto all'OLR 2?",a:["No","Sì","Solo per il tempo di lavoro"]},en:{q:"Is the professional transport of disabled people, schoolchildren and workers subject to the OLR 2?",a:["No","Yes","Only for working time"]},x:{it:"Art. 4 cpv. 1 lett. c.",en:"Art. 4 para. 1 let. c."}},
+{c:'P',art:'Art. 4 cpv. 1 lett. d',it:{q:"Prezzo del trasporto incluso in altre prestazioni (es. navetta hotel): fino a quanti km è escluso dall'OLR 2?",a:["50 km","30 km","100 km"]},en:{q:"Fare included in other services (e.g. hotel shuttle): up to how many km is it excluded from the OLR 2?",a:["50 km","30 km","100 km"]},x:{it:"Art. 4 cpv. 1 lett. d.",en:"Art. 4 para. 1 let. d."}},
+{c:'P',art:'Art. 3',it:{q:"L'OLR 2 vale anche per le corse a vuoto durante il servizio?",a:["Sì","No","Solo oltre 50 km"]},en:{q:"Does the OLR 2 also apply to empty runs during service?",a:["Yes","No","Only over 50 km"]},x:{it:"La corsa a vuoto è attività professionale.",en:"An empty run is professional activity."}},
+{c:'P',art:'Art. 4 cpv. 3',it:{q:"Corsa privata con il taxi: sei soggetto all'OLR 2?",a:["No, ma il tachigrafo deve restare in funzione","No, e il tachigrafo può essere spento","Sì, integralmente"]},en:{q:"Private trip with the taxi: are you subject to the OLR 2?",a:["No, but the tachograph must keep running","No, and the tachograph may be switched off","Yes, in full"]},x:{it:"Art. 4 cpv. 3: valgono solo gli art. 15–16a e 23. Art. 15 cpv. 2: posizione «Pausa».",en:"Art. 4 para. 3: only Arts. 15–16a and 23 apply. Art. 15 para. 2: “break” position."}},
+{c:'P',art:'Art. 4 cpv. 3',it:{q:"Quali articoli valgono durante una corsa privata?",a:["Art. 15–16a (tachigrafo) e 23 (informazione)","Tutta l'OLR 2","Nessuno"]},en:{q:"Which articles apply during a private trip?",a:["Arts. 15–16a (tachograph) and 23 (information)","The whole OLR 2","None"]},x:{it:"Art. 4 cpv. 3.",en:"Art. 4 para. 3."}},
+{c:'P',art:'Art. 4 cpv. 4',it:{q:"Conducenti delle imprese di trasporti pubblici che fanno solo trasporti di linea: OLR 2?",a:["No","Sì","Solo la domenica"]},en:{q:"Public-transport company drivers doing only scheduled transport: OLR 2?",a:["No","Yes","Only on Sundays"]},x:{it:"Art. 4 cpv. 4.",en:"Art. 4 para. 4."}},
+{c:'P',art:'Art. 4 cpv. 4',it:{q:"Se l'OLR 2 vale solo per una parte dell'attività, i limiti valgono per...",a:["L'insieme dell'attività, con mezzi di controllo per tutto","Solo la parte soggetta","Niente"]},en:{q:"If the OLR 2 applies only to part of the activity, the limits apply to...",a:["The whole activity, with control means for all of it","Only the part subject to it","Nothing"]},x:{it:"Art. 4 cpv. 4.",en:"Art. 4 para. 4."}},
+{c:'P',art:'Art. 25 cpv. 1',it:{q:"I Cantoni possono emanare regole diverse per i tassisti?",a:["Sì, per i tassisti nelle agglomerazioni urbane, entro i limiti dell'OLR 2","No, mai","Sì, per tutti i conducenti del cantone"]},en:{q:"May cantons issue different rules for taxi drivers?",a:["Yes, for taxi drivers in urban areas, within the OLR 2 limits","No, never","Yes, for all drivers in the canton"]},x:{it:"Art. 25 cpv. 1.",en:"Art. 25 para. 1."}},
+{c:'P',art:'Art. 25 cpv. 4',it:{q:"Cosa possono prescrivere i Cantoni al posto del libretto di lavoro?",a:["Carte di lavoro con le indicazioni principali","Nulla: il libretto è obbligatorio","Il solo tassametro"]},en:{q:"What may cantons prescribe instead of the work record book?",a:["Work cards with the main information","Nothing: the book is mandatory","Only the taximeter"]},x:{it:"Art. 25 cpv. 4.",en:"Art. 25 para. 4."}},
+{c:'P',art:'Art. 27',it:{q:"Quali regole valgono per il conducente a titolo accessorio?",a:["Per analogia quelle dei lavoratori","Nessuna","Solo quelle degli indipendenti"]},en:{q:"Which rules apply to a secondary-occupation driver?",a:["Those for employees, by analogy","None","Only those for self-employed drivers"]},x:{it:"Art. 27 cpv. 1.",en:"Art. 27 para. 1."}},
+{c:'P',art:'Art. 27 cpv. 2',it:{q:"Chi impiega conducenti a titolo accessorio deve accertarsi che...",a:["Attività principale e accessoria insieme non superino i limiti dell'OLR 2","Solo l'attività accessoria rispetti i limiti","Il conducente abbia un secondo libretto"]},en:{q:"An employer of secondary-occupation drivers must make sure that...",a:["Main and secondary activity together do not exceed the OLR 2 limits","Only the secondary activity respects the limits","The driver has a second record book"]},x:{it:"Art. 27 cpv. 2.",en:"Art. 27 para. 2."}},
+{c:'P',art:'ONC art. 3a',it:{q:"I tassisti sono esentati dall'obbligo delle cinture?",a:["No, mai","Sì, nel traffico urbano","Sì, con clienti a bordo"]},en:{q:"Are taxi drivers exempt from wearing seatbelts?",a:["No, never","Yes, in urban traffic","Yes, with customers on board"]},x:{it:"ONC art. 3a: l'esenzione per i tassisti è stata abolita nel 2006.",en:"VRV Art. 3a: the taxi exemption was abolished in 2006."}},
+{c:'P',art:'ONC art. 2a',it:{q:"Per quante ore prima del lavoro un tassista non deve bere alcol?",a:["6 ore","4 ore","8 ore"]},en:{q:"For how many hours before work must a taxi driver not drink alcohol?",a:["6 hours","4 hours","8 hours"]},x:{it:"ONC art. 2a: divieto durante il lavoro e nelle 6 ore precedenti.",en:"VRV Art. 2a: ban during work and in the 6 hours before."}},
+
+/* ===== ORARI: LAVORO, GUIDA, PAUSE, RIPOSO ===== */
+{c:'O',art:'Art. 5 cpv. 1',it:{q:"Settimana lavorativa massima del lavoratore?",a:["48 ore; 53 ore nelle imprese di tassì","45 ore; 48 ore nelle imprese di tassì","53 ore; 60 ore nelle imprese di tassì"]},en:{q:"Maximum working week for an employee?",a:["48 hours; 53 hours in taxi businesses","45 hours; 48 hours in taxi businesses","53 hours; 60 hours in taxi businesses"]},x:{it:"Art. 5 cpv. 1.",en:"Art. 5 para. 1."}},
+{c:'O',art:'Art. 5 cpv. 1',it:{q:"Quante ore a settimana può lavorare un tassista dipendente?",a:["53 ore","56 ore","60 ore"]},en:{q:"How many hours a week may an employed taxi driver work?",a:["53 hours","56 hours","60 hours"]},x:{it:"Art. 5 cpv. 1.",en:"Art. 5 para. 1."}},
+{c:'O',art:'Art. 5',it:{q:"Durata massima giornaliera del lavoro di un tassista?",a:["Non è regolata dall'OLR 2","10 ore","15 ore"]},en:{q:"Maximum daily working time for a taxi driver?",a:["Not regulated by the OLR 2","10 hours","15 hours"]},x:{it:"L'art. 5 fissa solo il limite settimanale.",en:"Art. 5 sets only the weekly limit."}},
+{c:'O',art:'Art. 5 / 2 lett. g',it:{q:"Tempo di lavoro settimanale massimo per l'indipendente?",a:["Non è limitato","53 ore","48 ore"]},en:{q:"Maximum weekly working time for a self-employed driver?",a:["Not limited","53 hours","48 hours"]},x:{it:"Per l'indipendente conta solo la guida (45 ore).",en:"For the self-employed only driving counts (45 hours)."}},
+{c:'O',art:'Art. 5 cpv. 3',it:{q:"Ogni quanto devono cambiare squadra i lavoratori a turni?",a:["Almeno ogni 6 settimane, salvo altro accordo","Ogni 4 settimane","Ogni 3 mesi"]},en:{q:"How often must shift workers change shift?",a:["At least every 6 weeks, unless otherwise agreed","Every 4 weeks","Every 3 months"]},x:{it:"Art. 5 cpv. 3.",en:"Art. 5 para. 3."}},
+{c:'O',art:'Art. 6 cpv. 1',it:{q:"Di quante ore di straordinario si può prolungare la settimana?",a:["4 ore; più 2 nei periodi di intensa attività","2 ore","8 ore"]},en:{q:"By how many overtime hours may the week be extended?",a:["4 hours; plus 2 in periods of intense activity","2 hours","8 hours"]},x:{it:"Art. 6 cpv. 1.",en:"Art. 6 para. 1."}},
+{c:'O',art:'Art. 6 cpv. 1',it:{q:"Straordinario massimo per anno civile?",a:["208 ore","240 ore","180 ore"]},en:{q:"Maximum overtime per calendar year?",a:["208 hours","240 hours","180 hours"]},x:{it:"Art. 6 cpv. 1 (52 × 4).",en:"Art. 6 para. 1 (52 × 4)."}},
+{c:'O',art:'Art. 6 cpv. 2',it:{q:"Più di 4 ore di straordinario in una settimana: cosa deve fare il datore di lavoro?",a:["Annunciarlo nel rapporto trimestrale entro 14 giorni dalla fine del trimestre","Nulla","Chiedere un permesso prima"]},en:{q:"More than 4 hours of overtime in a week: what must the employer do?",a:["Report it in the quarterly report within 14 days of the end of the quarter","Nothing","Ask for a permit beforehand"]},x:{it:"Art. 6 cpv. 2.",en:"Art. 6 para. 2."}},
+{c:'O',art:'Art. 6 cpv. 3',it:{q:"Entro quando va compensato lo straordinario?",a:["Entro 3 mesi; con accordo fino a 12 mesi","Entro 1 mese","Entro l'anno successivo"]},en:{q:"By when must overtime be compensated?",a:["Within 3 months; by agreement up to 12 months","Within 1 month","Within the following year"]},x:{it:"Art. 6 cpv. 3.",en:"Art. 6 para. 3."}},
+{c:'O',art:'Art. 6 cpv. 3',it:{q:"Come si compensa lo straordinario?",a:["Con supplemento salariale (25 %) o tempo libero di pari durata","Solo con denaro","Solo con tempo libero"]},en:{q:"How is overtime compensated?",a:["With a wage supplement (25 %) or free time of equal length","Only with money","Only with free time"]},x:{it:"Art. 6 cpv. 3; CO art. 321c.",en:"Art. 6 para. 3; CO Art. 321c."}},
+{c:'O',art:'Art. 5 + 6',it:{q:"Tassista dipendente con 50 ore fatte questa settimana: quante ancora, straordinario compreso?",a:["7 ore","3 ore","10 ore"]},en:{q:"Employed taxi driver with 50 hours done this week: how many more, overtime included?",a:["7 hours","3 hours","10 hours"]},x:{it:"53 + 4 = 57; 57 − 50 = 7.",en:"53 + 4 = 57; 57 − 50 = 7."}},
+{c:'O',art:'Art. 7 cpv. 1',it:{q:"Guida massima tra due riposi quotidiani?",a:["9 ore","10 ore","8 ore"]},en:{q:"Maximum driving between two daily rests?",a:["9 hours","10 hours","8 hours"]},x:{it:"Art. 7 cpv. 1.",en:"Art. 7 para. 1."}},
+{c:'O',art:'Art. 7 cpv. 2',it:{q:"Guida massima per settimana?",a:["45 ore","48 ore","53 ore"]},en:{q:"Maximum driving per week?",a:["45 hours","48 hours","53 hours"]},x:{it:"Art. 7 cpv. 2. Vale anche per l'indipendente.",en:"Art. 7 para. 2. Also applies to the self-employed."}},
+{c:'O',art:'Art. 7 cpv. 3',it:{q:"Lo straordinario prolunga la durata di guida?",a:["No, mai","Sì, di 2 ore al giorno","Sì, fino a 53 ore a settimana"]},en:{q:"Does overtime extend driving time?",a:["No, never","Yes, by 2 hours a day","Yes, up to 53 hours a week"]},x:{it:"Art. 7 cpv. 3.",en:"Art. 7 para. 3."}},
+{c:'O',art:'Art. 8 cpv. 1',it:{q:"Dopo quante ore di guida serve una pausa di 45 minuti?",a:["4½ ore","5½ ore","4 ore"]},en:{q:"After how many hours of driving is a 45-minute break required?",a:["4½ hours","5½ hours","4 hours"]},x:{it:"Art. 8 cpv. 1.",en:"Art. 8 para. 1."}},
+{c:'O',art:'Art. 8 cpv. 1',it:{q:"Pausa presa prima delle 4½ ore di guida: quanto basta?",a:["30 minuti, oppure 2 × 20 minuti","20 minuti, oppure 2 × 15 minuti","45 minuti"]},en:{q:"Break taken before 4½ hours of driving: how much is enough?",a:["30 minutes, or 2 × 20 minutes","20 minutes, or 2 × 15 minutes","45 minutes"]},x:{it:"Art. 8 cpv. 1.",en:"Art. 8 para. 1."}},
+{c:'O',art:'Art. 8 cpv. 1',it:{q:"Quando NON serve la pausa di guida dopo 4½ ore?",a:["Se inizia subito il riposo quotidiano o settimanale","Se la guida totale resta sotto 9 ore","Se il cliente ha fretta"]},en:{q:"When is the driving break after 4½ hours NOT needed?",a:["If the daily or weekly rest starts immediately","If total driving stays under 9 hours","If the customer is in a hurry"]},x:{it:"Art. 8 cpv. 1.",en:"Art. 8 para. 1."}},
+{c:'O',art:'Art. 8 cpv. 1-2',it:{q:"Cosa è vietato durante la pausa?",a:["Guidare e ogni attività professionale","Bere un caffè","Lasciare il veicolo"]},en:{q:"What is forbidden during a break?",a:["Driving and any professional activity","Having a coffee","Leaving the vehicle"]},x:{it:"Art. 8 cpv. 1 e 2.",en:"Art. 8 paras. 1 and 2."}},
+{c:'O',art:'Art. 8 cpv. 2',it:{q:"Al più tardi dopo quante ore di lavoro il lavoratore deve fare pausa?",a:["5½ ore","4½ ore","6 ore"]},en:{q:"At the latest after how many hours of work must the employee take a break?",a:["5½ hours","4½ hours","6 hours"]},x:{it:"Art. 8 cpv. 2.",en:"Art. 8 para. 2."}},
+{c:'O',art:'Art. 8 cpv. 3',it:{q:"Pausa minima con lavoro giornaliero fino a 7 ore?",a:["20 minuti","30 minuti","15 minuti"]},en:{q:"Minimum break for a working day of up to 7 hours?",a:["20 minutes","30 minutes","15 minutes"]},x:{it:"Art. 8 cpv. 3 lett. a.",en:"Art. 8 para. 3 let. a."}},
+{c:'O',art:'Art. 8 cpv. 3',it:{q:"Pausa minima con lavoro giornaliero tra 7 e 9 ore?",a:["30 minuti, oppure 2 × 20","20 minuti","45 minuti"]},en:{q:"Minimum break for a working day between 7 and 9 hours?",a:["30 minutes, or 2 × 20","20 minutes","45 minutes"]},x:{it:"Art. 8 cpv. 3 lett. b.",en:"Art. 8 para. 3 let. b."}},
+{c:'O',art:'Art. 8 cpv. 3',it:{q:"Pausa minima con lavoro giornaliero oltre 9 ore?",a:["1 ora, oppure 2 × 30 o 3 × 20","45 minuti","30 minuti"]},en:{q:"Minimum break for a working day over 9 hours?",a:["1 hour, or 2 × 30 or 3 × 20","45 minutes","30 minutes"]},x:{it:"Art. 8 cpv. 3 lett. c.",en:"Art. 8 para. 3 let. c."}},
+{c:'O',art:'Art. 8 cpv. 3',it:{q:"Durata minima di una singola frazione di pausa?",a:["20 minuti","15 minuti","10 minuti"]},en:{q:"Minimum length of a single break portion?",a:["20 minutes","15 minutes","10 minutes"]},x:{it:"Art. 8 cpv. 3.",en:"Art. 8 para. 3."}},
+{c:'O',art:'Art. 8 cpv. 4',it:{q:"Quante ore di lavoro al massimo tra due pause?",a:["5½ ore","4½ ore","7 ore"]},en:{q:"How many hours of work at most between two breaks?",a:["5½ hours","4½ hours","7 hours"]},x:{it:"Art. 8 cpv. 4.",en:"Art. 8 para. 4."}},
+{c:'O',art:'Art. 9 cpv. 1',it:{q:"Riposo quotidiano minimo nelle 24 ore?",a:["11 ore consecutive","10 ore","12 ore"]},en:{q:"Minimum daily rest within 24 hours?",a:["11 consecutive hours","10 hours","12 hours"]},x:{it:"Art. 9 cpv. 1.",en:"Art. 9 para. 1."}},
+{c:'O',art:'Art. 9 cpv. 1',it:{q:"A quanto si può ridurre il riposo quotidiano e quante volte?",a:["A 9 ore, 3 volte per settimana","A 8 ore, 2 volte per settimana","A 10 ore, ogni giorno"]},en:{q:"To what may the daily rest be reduced, and how often?",a:["To 9 hours, 3 times a week","To 8 hours, twice a week","To 10 hours, every day"]},x:{it:"Art. 9 cpv. 1. Nessun recupero.",en:"Art. 9 para. 1. No compensation needed."}},
+{c:'O',art:'Art. 9 cpv. 2',it:{q:"In quante parti al massimo si può dividere il riposo quotidiano?",a:["3","2","4"]},en:{q:"Into how many parts at most may the daily rest be split?",a:["3","2","4"]},x:{it:"Art. 9 cpv. 2.",en:"Art. 9 para. 2."}},
+{c:'O',art:'Art. 9 cpv. 2',it:{q:"Riposo quotidiano diviso: quanto in totale?",a:["Almeno 12 ore","Almeno 11 ore","Almeno 9 ore"]},en:{q:"Split daily rest: how much in total?",a:["At least 12 hours","At least 11 hours","At least 9 hours"]},x:{it:"Art. 9 cpv. 2 lett. c.",en:"Art. 9 para. 2 let. c."}},
+{c:'O',art:'Art. 9 cpv. 2',it:{q:"Riposo quotidiano diviso: quanto deve durare la parte più lunga?",a:["Almeno 8 ore","Almeno 9 ore","Almeno 6 ore"]},en:{q:"Split daily rest: how long must the longest part be?",a:["At least 8 hours","At least 9 hours","At least 6 hours"]},x:{it:"Art. 9 cpv. 2 lett. a.",en:"Art. 9 para. 2 let. a."}},
+{c:'O',art:'Art. 9 cpv. 2',it:{q:"Riposo quotidiano diviso: durata minima di ogni parte?",a:["1 ora","2 ore","30 minuti"]},en:{q:"Split daily rest: minimum length of each part?",a:["1 hour","2 hours","30 minutes"]},x:{it:"Art. 9 cpv. 2 lett. b.",en:"Art. 9 para. 2 let. b."}},
+{c:'O',art:'Art. 9 cpv. 2',it:{q:"8 ore di notte + 3 ore di pomeriggio: riposo diviso valido?",a:["No, servono 12 ore in totale","Sì, una parte è di 8 ore","Sì, supera le 9 ore"]},en:{q:"8 hours at night + 3 hours in the afternoon: valid split rest?",a:["No, 12 hours in total are needed","Yes, one part is 8 hours","Yes, it exceeds 9 hours"]},x:{it:"Art. 9 cpv. 2.",en:"Art. 9 para. 2."}},
+{c:'O',art:'Art. 9 cpv. 3',it:{q:"Durante il riposo quotidiano si può fare un'altra attività professionale?",a:["No","Sì, se la settimana resta sotto 53 ore","Sì, per un altro datore di lavoro"]},en:{q:"May another professional activity be done during the daily rest?",a:["No","Yes, if the week stays under 53 hours","Yes, for another employer"]},x:{it:"Art. 9 cpv. 3.",en:"Art. 9 para. 3."}},
+{c:'O',art:'Art. 11 cpv. 1',it:{q:"Riposo settimanale del lavoratore?",a:["Un giorno di almeno 24 ore consecutive ogni settimana","36 ore ogni settimana","24 ore ogni due settimane"]},en:{q:"Weekly rest for an employee?",a:["One day of at least 24 consecutive hours every week","36 hours every week","24 hours every two weeks"]},x:{it:"Art. 11 cpv. 1.",en:"Art. 11 para. 1."}},
+{c:'O',art:'Art. 11 cpv. 1',it:{q:"Il riposo quotidiano rispetto al giorno di riposo settimanale deve...",a:["Precederlo o seguirlo immediatamente","Precederlo sempre","Seguirlo sempre"]},en:{q:"The daily rest in relation to the weekly rest day must...",a:["Immediately precede or follow it","Always precede it","Always follow it"]},x:{it:"Art. 11 cpv. 1.",en:"Art. 11 para. 1."}},
+{c:'O',art:'Art. 11 + 9',it:{q:"Giorno di riposo + riposo quotidiano normale: quante ore libere?",a:["35 ore","33 ore","40 ore"]},en:{q:"Rest day + normal daily rest: how many free hours?",a:["35 hours","33 hours","40 hours"]},x:{it:"24 + 11 = 35. Con riposo ridotto 24 + 9 = 33.",en:"24 + 11 = 35. With reduced rest 24 + 9 = 33."}},
+{c:'O',art:'Art. 11 + 9 + 12',it:{q:"Giorno di riposo + riposo normale + semigiornata: quante ore libere?",a:["40 ore","38 ore","35 ore"]},en:{q:"Rest day + normal rest + half-day: how many free hours?",a:["40 hours","38 hours","35 hours"]},x:{it:"24 + 11 + 5 = 40.",en:"24 + 11 + 5 = 40."}},
+{c:'O',art:'Art. 11 + 9 + 12',it:{q:"Giorno di riposo + riposo ridotto + semigiornata: quante ore libere?",a:["38 ore","40 ore","33 ore"]},en:{q:"Rest day + reduced rest + half-day: how many free hours?",a:["38 hours","40 hours","33 hours"]},x:{it:"24 + 9 + 5 = 38.",en:"24 + 9 + 5 = 38."}},
+{c:'O',art:'Art. 12 cpv. 3 + 9',it:{q:"Due semigiornate unite + riposo ridotto: quante ore libere minime?",a:["20 ore","18 ore","24 ore"]},en:{q:"Two half-days together + reduced rest: minimum free hours?",a:["20 hours","18 hours","24 hours"]},x:{it:"07.00–18.00 = 11 ore + 9 ore = 20.",en:"07:00–18:00 = 11 hours + 9 hours = 20."}},
+{c:'O',art:'Art. 11 cpv. 1',it:{q:"Quando deve cadere il giorno di riposo settimanale?",a:["Di domenica o in un giorno festivo, a domicilio, salvo lavoro domenicale","Quando decide il datore di lavoro","Sempre di sabato"]},en:{q:"When must the weekly rest day fall?",a:["On a Sunday or public holiday, at home, except for Sunday work","Whenever the employer decides","Always on Saturday"]},x:{it:"Art. 11 cpv. 1.",en:"Art. 11 para. 1."}},
+{c:'O',art:'Art. 11 cpv. 2',it:{q:"Chi lavora la domenica: quanti giorni di riposo di domenica o festivi all'anno?",a:["Almeno 20","Almeno 12","Almeno 18"]},en:{q:"Sunday workers: how many Sunday/holiday rest days per year?",a:["At least 20","At least 12","At least 18"]},x:{it:"Art. 11 cpv. 2.",en:"Art. 11 para. 2."}},
+{c:'O',art:'Art. 11 cpv. 2',it:{q:"Dopo una domenica lavorata, quando si recupera il giorno di riposo?",a:["In uno dei 6 giorni feriali prima o dopo","Solo dopo la domenica","Solo prima della domenica"]},en:{q:"After a working Sunday, when is the rest day taken?",a:["On one of the 6 weekdays before or after","Only after the Sunday","Only before the Sunday"]},x:{it:"Art. 11 cpv. 2.",en:"Art. 11 para. 2."}},
+{c:'O',art:'Art. 11 cpv. 2',it:{q:"Riposo compensativo per lavoro domenicale: orari?",a:["Inizia non dopo le 06.00, finisce non prima delle 20.00","Inizia non dopo le 08.00, finisce non prima delle 18.00","Qualsiasi orario"]},en:{q:"Compensatory rest for Sunday work: times?",a:["Starts not after 06:00, ends not before 20:00","Starts not after 08:00, ends not before 18:00","Any time"]},x:{it:"Art. 11 cpv. 2.",en:"Art. 11 para. 2."}},
+{c:'O',art:'Art. 11 cpv. 2',it:{q:"Giorni lavorativi massimi tra due giorni di riposo?",a:["12","14","18"]},en:{q:"Maximum working days between two rest days?",a:["12","14","18"]},x:{it:"Art. 11 cpv. 2 e 4.",en:"Art. 11 paras. 2 and 4."}},
+{c:'O',art:'Art. 11 cpv. 3',it:{q:"Il giorno di riposo conta come domenica se almeno quante ore su 24 cadono di domenica?",a:["18","12","24"]},en:{q:"The rest day counts as a Sunday if at least how many of the 24 hours fall on a Sunday?",a:["18","12","24"]},x:{it:"Art. 11 cpv. 3.",en:"Art. 11 para. 3."}},
+{c:'O',art:'Art. 11 cpv. 4',it:{q:"Riposo settimanale dell'indipendente?",a:["2 giorni di 24 ore in due settimane, max 12 giorni tra l'uno e l'altro","1 giorno di 24 ore ogni settimana","2 giorni di 18 ore in due settimane"]},en:{q:"Weekly rest for a self-employed driver?",a:["2 days of 24 hours within two weeks, max 12 days between them","1 day of 24 hours every week","2 days of 18 hours within two weeks"]},x:{it:"Art. 11 cpv. 4.",en:"Art. 11 para. 4."}},
+{c:'O',art:'Art. 11 cpv. 4',it:{q:"Chi può cumulare due giorni di riposo in due settimane?",a:["L'indipendente","Il lavoratore","Nessuno"]},en:{q:"Who may combine two rest days within two weeks?",a:["The self-employed driver","The employee","Nobody"]},x:{it:"Art. 11 cpv. 4.",en:"Art. 11 para. 4."}},
+{c:'O',art:'Art. 11 cpv. 5',it:{q:"Si può lavorare durante il giorno di riposo?",a:["No","Sì, max 4 ore","Sì, per un altro datore di lavoro"]},en:{q:"May one work during the rest day?",a:["No","Yes, max 4 hours","Yes, for another employer"]},x:{it:"Art. 11 cpv. 5.",en:"Art. 11 para. 5."}},
+{c:'O',art:'Art. 12 cpv. 1',it:{q:"Chi ha diritto a una semigiornata libera a settimana?",a:["Chi lavora su più di 5 mattine e pomeriggi","Chi lavora più di 45 ore","Tutti i lavoratori"]},en:{q:"Who is entitled to one half-day off per week?",a:["Anyone working on more than 5 mornings and afternoons","Anyone working more than 45 hours","All employees"]},x:{it:"Art. 12 cpv. 1.",en:"Art. 12 para. 1."}},
+{c:'O',art:'Art. 12 cpv. 3',it:{q:"Cos'è la semigiornata libera?",a:["5 ore consecutive tra le 07.00 e le 18.00","4 ore tra le 06.00 e le 20.00","6 ore a scelta"]},en:{q:"What is the half-day off?",a:["5 consecutive hours between 07:00 and 18:00","4 hours between 06:00 and 20:00","6 hours of free choice"]},x:{it:"Art. 12 cpv. 3.",en:"Art. 12 para. 3."}},
+{c:'O',art:'Art. 12 cpv. 3',it:{q:"Due semigiornate unite in un giorno libero: quale intervallo?",a:["Dalle 07.00 alle 18.00, con il riposo quotidiano subito prima o dopo","Dalle 06.00 alle 18.00","Dalle 06.00 alle 20.00"]},en:{q:"Two half-days combined into one day off: which interval?",a:["07:00 to 18:00, with the daily rest immediately before or after","06:00 to 18:00","06:00 to 20:00"]},x:{it:"Art. 12 cpv. 3.",en:"Art. 12 para. 3."}},
+{c:'O',art:'Art. 12 cpv. 2',it:{q:"Quante semigiornate si possono ritirare in blocco?",a:["4 (quattro settimane consecutive), nello stesso periodo","2","Tutte quelle dell'anno"]},en:{q:"How many half-days may be taken in one block?",a:["4 (four consecutive weeks), within the same period","2","All those of the year"]},x:{it:"Art. 12 cpv. 2.",en:"Art. 12 para. 2."}},
+{c:'O',art:'Art. 12 cpv. 2',it:{q:"Condizione per differire le semigiornate?",a:["Non superare la durata massima del lavoro","Il permesso dell'autorità","Nessuna"]},en:{q:"Condition for postponing half-days?",a:["Not exceeding the maximum working time","Permission from the authority","None"]},x:{it:"Art. 12 cpv. 2.",en:"Art. 12 para. 2."}},
+{c:'O',art:'Art. 13',it:{q:"Il riposo può essere pagato in denaro invece di essere goduto?",a:["No, salvo alla fine del rapporto di lavoro","Sì, se il lavoratore è d'accordo","Sì, solo la semigiornata"]},en:{q:"May rest be paid in money instead of taken?",a:["No, except at the end of the employment relationship","Yes, if the employee agrees","Yes, only the half-day"]},x:{it:"Art. 13.",en:"Art. 13."}},
+{c:'O',art:'Art. 20',it:{q:"Si può derogare ai tempi di lavoro, guida e riposo?",a:["Solo in casi di necessità (forza maggiore, soccorso), annotandolo","No, mai","Sì, fino a 30 minuti al giorno"]},en:{q:"May one deviate from working, driving and rest times?",a:["Only in cases of necessity (force majeure, assistance), with a record","No, never","Yes, up to 30 minutes a day"]},x:{it:"Art. 20 cpv. 1: annotare nel libretto e nel registro.",en:"Art. 20 para. 1: record in the book and the register."}},
+{c:'O',art:'Art. 20 cpv. 2',it:{q:"Entro quando si compensa una deroga per necessità?",a:["Entro la fine della settimana successiva","Entro 3 mesi","Non si compensa"]},en:{q:"By when must a deviation due to necessity be compensated?",a:["By the end of the following week","Within 3 months","It is not compensated"]},x:{it:"Art. 20 cpv. 2.",en:"Art. 20 para. 2."}},
+{c:'O',art:'Art. 22 cpv. 1',it:{q:"Il datore di lavoro ti assegna turni che violano l'OLR 2. Cosa fai?",a:["Lo informo subito che non posso rispettare i tempi","Obbedisco: la colpa è sua","Obbedisco: la colpa è mia"]},en:{q:"Your employer assigns shifts that violate the OLR 2. What do you do?",a:["I inform them immediately that I cannot keep the times","I obey: it is their fault","I obey: it is my fault"]},x:{it:"Art. 22 cpv. 1.",en:"Art. 22 para. 1."}},
+{c:'O',art:'Art. 28 cpv. 1',it:{q:"Pena per chi viola i tempi di lavoro, guida e riposo?",a:["Multa","Arresto o multa","Nessuna"]},en:{q:"Penalty for violating working, driving and rest times?",a:["Fine","Detention or fine","None"]},x:{it:"Art. 28 cpv. 1.",en:"Art. 28 para. 1."}},
+
+/* ===== CONTROLLO: TACHIGRAFO E DISCHI ===== */
+{c:'C',art:'Art. 14',it:{q:"Quali sono i mezzi di controllo?",a:["Tachigrafo, libretto di lavoro (o rapporti interni / carte di lavoro) e registro del datore di lavoro","Tassametro e licenza di circolazione","Solo il libretto di lavoro"]},en:{q:"What are the control means?",a:["Tachograph, work record book (or internal reports / work cards) and the employer's register","Taximeter and registration document","Only the work record book"]},x:{it:"Art. 14.",en:"Art. 14."}},
+{c:'C',art:'Art. 16a / OETV 100',it:{q:"Quali tachigrafi si trovano nei taxi?",a:["CH analogico, UE analogico, UE digitale","Solo digitali","Solo CH"]},en:{q:"Which tachographs are found in taxis?",a:["CH analogue, EU analogue, EU digital","Only digital","Only CH"]},x:{it:"Art. 16 (CH) e art. 16a (UE → OLR 1).",en:"Art. 16 (CH) and Art. 16a (EU → OLR 1)."}},
+{c:'C',art:'Art. 16a',it:{q:"Taxi con tachigrafo UE (analogico o digitale): quali regole sul tachigrafo valgono?",a:["Quelle dell'OLR 1","Quelle dell'OLR 2, art. 16","Nessuna"]},en:{q:"Taxi with an EU tachograph (analogue or digital): which tachograph rules apply?",a:["Those of the OLR 1","Those of the OLR 2, Art. 16","None"]},x:{it:"Art. 16a: rinvio agli art. 13–15, 16a, 18 OLR 1.",en:"Art. 16a: reference to Arts. 13–15, 16a, 18 OLR 1."}},
+{c:'C',art:'Art. 15 cpv. 1',it:{q:"Quando deve essere in funzione il tachigrafo?",a:["Sempre, durante tutta l'attività professionale, finché il conducente è nel veicolo o vicino","Solo con clienti a bordo","Solo di notte"]},en:{q:"When must the tachograph be running?",a:["Always, during all professional activity, while the driver is in or near the vehicle","Only with customers on board","Only at night"]},x:{it:"Art. 15 cpv. 1.",en:"Art. 15 para. 1."}},
+{c:'C',art:'Art. 15 cpv. 1',it:{q:"Cosa deve registrare correttamente il tachigrafo?",a:["Guida, altri lavori e pause","Solo la guida","Guida, lavoro, riposo e presenza"]},en:{q:"What must the tachograph record correctly?",a:["Driving, other work and breaks","Only driving","Driving, work, rest and standby"]},x:{it:"Art. 15 cpv. 1.",en:"Art. 15 para. 1."}},
+{c:'C',art:'Art. 15 cpv. 2',it:{q:"Corsa privata: posizione del tachigrafo?",a:["In funzione, su «Pausa» («0» o «sedia»)","Spento","Su «guida»"]},en:{q:"Private trip: tachograph position?",a:["Running, on “break” (“0” or “chair”)","Switched off","On “driving”"]},x:{it:"Art. 15 cpv. 2.",en:"Art. 15 para. 2."}},
+{c:'C',art:'Art. 15 cpv. 2',it:{q:"Se «Pausa» non distingue corse private e professionali, il conducente...",a:["Tiene un controllo permanente delle corse private","Non registra nulla","Toglie il disco"]},en:{q:"If “break” does not distinguish private from professional trips, the driver...",a:["Keeps a permanent record of private trips","Records nothing","Removes the sheet"]},x:{it:"Art. 15 cpv. 2.",en:"Art. 15 para. 2."}},
+{c:'C',art:'Art. 15 cpv. 1',it:{q:"Pausa caffè di 10 minuti con il selettore su «guida»: cosa registra il tachigrafo?",a:["Tempo di lavoro","Pausa, perché il veicolo è fermo","Nulla"]},en:{q:"10-minute coffee break with the selector on “driving”: what does the tachograph record?",a:["Working time","A break, because the vehicle is stationary","Nothing"]},x:{it:"Per la pausa va scelta la posizione «Pausa».",en:"For a break the “break” position must be selected."}},
+{c:'C',art:'Art. 15 cpv. 3',it:{q:"Quante volte al giorno si può aprire il tachigrafo durante la corsa per controllarlo?",a:["Una volta","Due volte","Quante si vuole"]},en:{q:"How often per day may the tachograph be opened during the trip to check it?",a:["Once","Twice","As often as you like"]},x:{it:"Art. 15 cpv. 3.",en:"Art. 15 para. 3."}},
+{c:'C',art:'Art. 15 cpv. 3',it:{q:"Su richiesta dell'autorità il conducente deve...",a:["Aprire il tachigrafo e dare le informazioni necessarie","Chiamare il datore di lavoro","Rifiutare: il tachigrafo è sigillato"]},en:{q:"At the authority's request the driver must...",a:["Open the tachograph and give the necessary information","Call the employer","Refuse: the tachograph is sealed"]},x:{it:"Art. 15 cpv. 3.",en:"Art. 15 para. 3."}},
+{c:'C',art:'Art. 16 cpv. 1',it:{q:"Quali dischi devono trovarsi nel veicolo?",a:["Dischi di riserva sufficienti e il disco del giorno precedente (o copia), se era lavorativo","Solo i dischi usati della settimana","Nessun disco vuoto"]},en:{q:"Which sheets must be in the vehicle?",a:["Enough spare sheets and the previous day's sheet (or copy), if it was a working day","Only the used sheets of the week","No blank sheets"]},x:{it:"Art. 16 cpv. 1.",en:"Art. 16 para. 1."}},
+{c:'C',art:'Art. 16 cpv. 1',it:{q:"Quali dischi si possono usare?",a:["Solo dischi omologati per l'apparecchio montato","Qualsiasi disco dello stesso diametro","Fotocopie in caso di bisogno"]},en:{q:"Which sheets may be used?",a:["Only type-approved sheets for the device fitted","Any sheet of the same diameter","Photocopies if needed"]},x:{it:"Art. 16 cpv. 1.",en:"Art. 16 para. 1."}},
+{c:'C',art:'Art. 16 cpv. 1',it:{q:"Disco da 125 km/h in un tachigrafo da 160 km/h?",a:["Non ammesso","Ammesso","Ammesso sotto i 125 km/h"]},en:{q:"125 km/h sheet in a 160 km/h tachograph?",a:["Not allowed","Allowed","Allowed below 125 km/h"]},x:{it:"Art. 16 cpv. 1: scala ore e velocità devono corrispondere.",en:"Art. 16 para. 1: hour and speed scales must match."}},
+{c:'C',art:'Art. 16 cpv. 2',it:{q:"Quante volte si può usare un disco?",a:["Una sola volta","Due giorni consecutivi","Fino a riempimento"]},en:{q:"How often may a sheet be used?",a:["Once only","Two consecutive days","Until it is full"]},x:{it:"Art. 16 cpv. 2.",en:"Art. 16 para. 2."}},
+{c:'C',art:'Art. 16 cpv. 2',it:{q:"Per quanto tempo può restare un disco nel tachigrafo?",a:["Max 24 ore","48 ore","Una settimana"]},en:{q:"How long may a sheet stay in the tachograph?",a:["Max 24 hours","48 hours","One week"]},x:{it:"Art. 16 cpv. 2: un disco per veicolo e per giorno.",en:"Art. 16 para. 2: one sheet per vehicle per day."}},
+{c:'C',art:'Art. 16 cpv. 2',it:{q:"Tachigrafo CH: il disco è...",a:["Legato al veicolo: un disco per veicolo e giorno, usabile da due conducenti (posizioni 1 e 2)","Personale: un disco per conducente","Settimanale"]},en:{q:"CH tachograph: the sheet is...",a:["Vehicle-bound: one sheet per vehicle per day, usable by two drivers (positions 1 and 2)","Personal: one sheet per driver","Weekly"]},x:{it:"Art. 16 cpv. 2 e 3.",en:"Art. 16 paras. 2 and 3."}},
+{c:'C',art:'OLR 1 art. 14a',it:{q:"Tachigrafo UE: il disco è...",a:["Personale: un conducente, lo porta con sé anche cambiando veicolo","Legato al veicolo","Usabile da più conducenti"]},en:{q:"EU tachograph: the sheet is...",a:["Personal: one driver, who takes it along even when changing vehicle","Vehicle-bound","Usable by several drivers"]},x:{it:"Art. 16a OLR 2 → OLR 1 art. 14a.",en:"Art. 16a OLR 2 → OLR 1 Art. 14a."}},
+{c:'C',art:'Art. 16 cpv. 2',it:{q:"Più di due conducenti al giorno sullo stesso veicolo (turni): disco individuale?",a:["Sì, con permesso dell'autorità, valido 1 anno, copia all'USTRA","Sì, sempre","No, mai"]},en:{q:"More than two drivers a day on the same vehicle (shifts): individual sheet?",a:["Yes, with permission from the authority, valid 1 year, copy to the Federal Roads Office","Yes, always","No, never"]},x:{it:"Art. 16 cpv. 2.",en:"Art. 16 para. 2."}},
+{c:'C',art:'Art. 16 cpv. 3',it:{q:"Cosa scrivere sul disco CH prima di partire?",a:["Nome (e del 2° conducente), data, targa, km iniziali","Solo nome e km","Nome, riposo e km"]},en:{q:"What to write on the CH sheet before departure?",a:["Name (and 2nd driver's), date, plate, starting km","Only name and km","Name, rest and km"]},x:{it:"Art. 16 cpv. 3.",en:"Art. 16 para. 3."}},
+{c:'C',art:'Art. 16 cpv. 3',it:{q:"Cosa scrivere sul disco alla fine del lavoro?",a:["Nuovo chilometraggio e totale km; correggere i nomi se cambiati","Ora di fine lavoro","Nulla"]},en:{q:"What to write on the sheet at the end of work?",a:["New odometer reading and total km; correct names if changed","End-of-work time","Nothing"]},x:{it:"Art. 16 cpv. 3.",en:"Art. 16 para. 3."}},
+{c:'C',art:'OLR 1 art. 14a',it:{q:"Cosa scrivere sul disco UE prima di inserirlo?",a:["Cognome, nome, targa, km iniziali, data e luogo","Cognome e numero interno del veicolo","Nulla: è automatico"]},en:{q:"What to write on the EU sheet before inserting it?",a:["Surname, first name, plate, starting km, date and place","Surname and fleet number","Nothing: it is automatic"]},x:{it:"OLR 1 art. 14a cpv. 1.",en:"OLR 1 Art. 14a para. 1."}},
+{c:'C',art:'OLR 1 art. 14a',it:{q:"Cambio veicolo con disco UE: cosa annotare?",a:["Davanti: km finali e km percorsi; dietro: ora del cambio, targa del nuovo veicolo, km","Davanti: luogo d'arrivo e data","Nulla: si prende un nuovo disco"]},en:{q:"Vehicle change with an EU sheet: what to note?",a:["Front: final km and km driven; back: time of change, new plate, km","Front: place of arrival and date","Nothing: take a new sheet"]},x:{it:"OLR 1 art. 14a cpv. 1 lett. d–e. Luogo e data solo all'inserimento ed estrazione.",en:"OLR 1 Art. 14a para. 1 let. d–e. Place and date only on insertion and removal."}},
+{c:'C',art:'Art. 16 cpv. 3',it:{q:"Cambio conducente con tachigrafo CH: cosa fare?",a:["Girare il pomello da «1» a «2» e completare i nomi sul disco","Cambiare il disco","Nulla"]},en:{q:"Driver change with a CH tachograph: what to do?",a:["Turn the knob from “1” to “2” and complete the names on the sheet","Change the sheet","Nothing"]},x:{it:"Art. 16 cpv. 2 e 3. Con tachigrafo UE si cambia il disco.",en:"Art. 16 paras. 2 and 3. With an EU tachograph the sheet is swapped."}},
+{c:'C',art:'Art. 16 cpv. 6',it:{q:"Terzo conducente nello stesso giorno (tachigrafo CH): cosa fa sul disco?",a:["Scrive il nome accanto al conducente 1 o 2 secondo la posizione usata","Inserisce un nuovo disco","Nulla"]},en:{q:"Third driver on the same day (CH tachograph): what does he do on the sheet?",a:["Writes his name next to driver 1 or 2 according to the position used","Inserts a new sheet","Nothing"]},x:{it:"Art. 16 cpv. 6; e compila il foglio quotidiano (art. 18 cpv. 4).",en:"Art. 16 para. 6; and fills in the daily sheet (Art. 18 para. 4)."}},
+{c:'C',art:'Art. 16 cpv. 4',it:{q:"Tachigrafo settimanale: quando si inserisce la serie di dischi?",a:["Il primo giorno di lavoro della settimana, con il primo disco compilato come un disco giornaliero","Ogni giorno","Dopo ogni giorno libero"]},en:{q:"Weekly tachograph: when is the set of sheets inserted?",a:["On the first working day of the week, with the first sheet filled in like a daily sheet","Every day","After every day off"]},x:{it:"Art. 16 cpv. 4.",en:"Art. 16 para. 4."}},
+{c:'C',art:'Art. 16 cpv. 4',it:{q:"Fine settimana con tachigrafo settimanale: cosa fare?",a:["Togliere la serie, scrivere km e totale sul primo disco, i nomi sugli altri","Consegnare la serie all'autorità","Scrivere i km su ogni disco"]},en:{q:"End of week with a weekly tachograph: what to do?",a:["Remove the set, write km and total on the first sheet, names on the others","Hand the set to the authority","Write km on every sheet"]},x:{it:"Art. 16 cpv. 4.",en:"Art. 16 para. 4."}},
+{c:'C',art:'Art. 16 cpv. 5',it:{q:"Disco giornaliero speciale per tachigrafo settimanale: scala?",a:["26 ore","24 ore","7 giorni"]},en:{q:"Special daily sheet for a weekly tachograph: scale?",a:["26 hours","24 hours","7 days"]},x:{it:"Art. 16 cpv. 5 (disco a 26 ore, pausa di ca. 30°).",en:"Art. 16 para. 5 (26-hour sheet, gap of about 30°)."}},
+{c:'C',art:'Art. 16 cpv. 7',it:{q:"Iscrizioni facoltative sul disco?",a:["Ammesse se non rendono difficile la lettura","Vietate","Solo in rosso"]},en:{q:"Optional entries on the sheet?",a:["Allowed if they do not make reading difficult","Forbidden","Only in red"]},x:{it:"Art. 16 cpv. 7.",en:"Art. 16 para. 7."}},
+{c:'C',art:'Art. 16 cpv. 8',it:{q:"Entro quando consegnare i dischi usati al datore di lavoro?",a:["Al più tardi il primo giorno di lavoro della settimana successiva","Entro 2 settimane","Ogni sera"]},en:{q:"By when must used sheets be handed to the employer?",a:["At the latest on the first working day of the following week","Within 2 weeks","Every evening"]},x:{it:"Art. 16 cpv. 8. Dall'estero: dopo il ritorno.",en:"Art. 16 para. 8. From abroad: after returning."}},
+{c:'C',art:'Art. 16 cpv. 8',it:{q:"Come si archiviano i dischi?",a:["In ordine cronologico, per veicolo","In ordine alfabetico, per conducente","Per mese"]},en:{q:"How are sheets filed?",a:["In chronological order, by vehicle","In alphabetical order, by driver","By month"]},x:{it:"Art. 16 cpv. 8 (dischi UE: per conducente, OLR 1).",en:"Art. 16 para. 8 (EU sheets: by driver, OLR 1)."}},
+{c:'C',art:'OLR 1 art. 14a cpv. 5',it:{q:"Come custodire i dischi?",a:["Protetti (custodia), puliti e non danneggiati","Piegati in tasca","Nel tachigrafo fino a fine settimana"]},en:{q:"How to keep the sheets?",a:["Protected (sleeve), clean and undamaged","Folded in a pocket","In the tachograph until the end of the week"]},x:{it:"OLR 1 art. 14a cpv. 5; art. 16 cpv. 1 OLR 2.",en:"OLR 1 Art. 14a para. 5; Art. 16 para. 1 OLR 2."}},
+{c:'C',art:'OLR 1 art. 14c',it:{q:"Controllo stradale con tachigrafo UE: cosa presentare?",a:["Disco/dati del giorno e dei 56 giorni precedenti, più la carta del conducente","Solo il disco di oggi","Solo la carta del conducente"]},en:{q:"Roadside check with an EU tachograph: what to present?",a:["Sheet/data of the day and the previous 56 days, plus the driver card","Only today's sheet","Only the driver card"]},x:{it:"OLR 1 art. 14c (dal 2025: 56 giorni; prima 28).",en:"OLR 1 Art. 14c (since 2025: 56 days; previously 28)."}},
+{c:'C',art:'OLR 1 art. 13b',it:{q:"Validità della carta del conducente?",a:["5 anni","3 anni","10 anni"]},en:{q:"Validity of the driver card?",a:["5 years","3 years","10 years"]},x:{it:"OLR 1 art. 13b cpv. 3.",en:"OLR 1 Art. 13b para. 3."}},
+{c:'C',art:'OLR 1 art. 13b',it:{q:"Cosa contiene la carta del conducente?",a:["I dati che identificano il conducente","I dati del detentore del veicolo","I dati del veicolo"]},en:{q:"What does the driver card contain?",a:["Data identifying the driver","The vehicle keeper's data","The vehicle's data"]},x:{it:"OLR 1 art. 13b.",en:"OLR 1 Art. 13b."}},
+{c:'C',art:'OLR 1 art. 13a',it:{q:"Quando la carta del conducente viene ritirata prima della scadenza?",a:["Se usata da un altro conducente o ottenuta con dati falsi","Dopo 3 superamenti della guida in un mese","Dopo una multa"]},en:{q:"When is the driver card withdrawn before expiry?",a:["If used by another driver or obtained with false data","After 3 driving-time violations in a month","After a fine"]},x:{it:"OLR 1 art. 13a cpv. 2.",en:"OLR 1 Art. 13a para. 2."}},
+{c:'C',art:'OLR 1 art. 13b',it:{q:"Revoca della licenza di condurre: effetto sulla carta del conducente?",a:["Nessuno, resta valida","La annulla","Serve una nuova carta"]},en:{q:"Licence withdrawal: effect on the driver card?",a:["None, it stays valid","It cancels it","A new card is needed"]},x:{it:"Senza licenza non si può guidare, ma la carta resta valida.",en:"Without a licence you may not drive, but the card stays valid."}},
+{c:'C',art:'Tachigrafo digitale',it:{q:"Dati del tachigrafo digitale: chi può vederli?",a:["Anche il conducente: display, stampa o scarico","Solo gli organi di controllo","Solo il datore di lavoro"]},en:{q:"Digital tachograph data: who can see them?",a:["The driver too: display, print or download","Only control bodies","Only the employer"]},x:{it:"Visualizzazione, stampa, scarico su supporto esterno.",en:"Display, print, download to an external medium."}},
+{c:'C',art:'Tachigrafo digitale',it:{q:"Come si manifesta un guasto del tachigrafo digitale?",a:["Messaggio di errore o display vuoto","Non si manifesta","Il veicolo non parte"]},en:{q:"How does a digital tachograph fault show?",a:["Error message or blank display","It does not show","The vehicle will not start"]},x:{it:"Controllo periodico ogni 2 anni in officina autorizzata.",en:"Periodic check every 2 years at an authorised workshop."}},
+{c:'C',art:'OETV art. 101',it:{q:"Chi può riparare il tachigrafo?",a:["Solo officine autorizzate","Il conducente, se istruito","Il datore di lavoro"]},en:{q:"Who may repair the tachograph?",a:["Only authorised workshops","The driver, if trained","The employer"]},x:{it:"OETV art. 101 cpv. 1.",en:"VTS Art. 101 para. 1."}},
+{c:'C',art:'OETV art. 101 cpv. 5',it:{q:"Cosa controllare dopo una riparazione del tachigrafo?",a:["Che le piombature siano intatte","Che ci siano abbastanza dischi","La precisione, misurata dal conducente"]},en:{q:"What to check after a tachograph repair?",a:["That the seals are intact","That there are enough sheets","Accuracy, measured by the driver"]},x:{it:"OETV art. 101 cpv. 5.",en:"VTS Art. 101 para. 5."}},
+{c:'C',art:'Art. 22 cpv. 3',it:{q:"Tachigrafo guasto: a chi annunciarlo e quando?",a:["Al datore di lavoro, al più presto","Alla polizia, entro 24 ore","All'USTRA, per iscritto"]},en:{q:"Broken tachograph: whom to notify and when?",a:["The employer, as soon as possible","The police, within 24 hours","The Federal Roads Office, in writing"]},x:{it:"Art. 22 cpv. 3.",en:"Art. 22 para. 3."}},
+{c:'C',art:'Art. 18 cpv. 4',it:{q:"Tachigrafo guasto: dove si registrano i tempi?",a:["Nel foglio quotidiano del libretto di lavoro (e a mano sul disco UE)","Su un blocchetto","Da nessuna parte"]},en:{q:"Broken tachograph: where are times recorded?",a:["On the daily sheet of the work record book (and by hand on the EU sheet)","In a notepad","Nowhere"]},x:{it:"Art. 18 cpv. 4 lett. a; OLR 1 art. 14a cpv. 3.",en:"Art. 18 para. 4 let. a; OLR 1 Art. 14a para. 3."}},
+{c:'C',art:'Art. 18 cpv. 4',it:{q:"Si può circolare con il tachigrafo guasto?",a:["Sì, compilando il foglio quotidiano e facendolo riparare al più presto","No, mai","Sì, avvisando la polizia"]},en:{q:"May you drive with a broken tachograph?",a:["Yes, filling in the daily sheet and having it repaired as soon as possible","No, never","Yes, after informing the police"]},x:{it:"Art. 18 cpv. 4; art. 22 cpv. 3; OLR 1 art. 14 cpv. 3.",en:"Art. 18 para. 4; Art. 22 para. 3; OLR 1 Art. 14 para. 3."}},
+{c:'C',art:'OLR 1 art. 14 cpv. 3',it:{q:"Entro quando va riparato un tachigrafo UE guasto?",a:["Al più presto; lungo il percorso se non si rientra entro una settimana","Entro 24 ore","Entro un mese"]},en:{q:"By when must a broken EU tachograph be repaired?",a:["As soon as possible; en route if no return within one week","Within 24 hours","Within one month"]},x:{it:"OLR 1 art. 14 cpv. 3 (via art. 16a).",en:"OLR 1 Art. 14 para. 3 (via Art. 16a)."}},
+{c:'C',art:'OLR 1 art. 14a cpv. 2',it:{q:"Conducente lontano dal veicolo e non può usare il tachigrafo: cosa fa?",a:["Annota a mano sul disco i tempi di lavoro, disponibilità e riposo","Nulla","Compila un rapporto speciale"]},en:{q:"Driver away from the vehicle, unable to use the tachograph: what does he do?",a:["Notes working, standby and rest times by hand on the sheet","Nothing","Fills in a special report"]},x:{it:"OLR 1 art. 14a cpv. 2.",en:"OLR 1 Art. 14a para. 2."}},
+{c:'C',art:'OLR 1 art. 14a cpv. 3',it:{q:"Tachigrafo UE registra male e i dati sono illeggibili: dove annotarli?",a:["A mano sul disco o su un foglio speciale allegato","Su un blocchetto","Solo nel libretto"]},en:{q:"EU tachograph records badly and data are unreadable: where to note them?",a:["By hand on the sheet or on an attached special sheet","In a notepad","Only in the record book"]},x:{it:"OLR 1 art. 14a cpv. 3.",en:"OLR 1 Art. 14a para. 3."}},
+
+/* ===== CONTROLLO: LIBRETTO DI LAVORO, DATORE DI LAVORO, PENALE ===== */
+{c:'C',art:'Art. 17 cpv. 1',it:{q:"Il libretto di lavoro va portato con sé?",a:["Sì, in ogni corsa, e mostrato all'autorità su richiesta","No, resta in azienda","Solo se il tachigrafo è guasto"]},en:{q:"Must the work record book be carried?",a:["Yes, on every trip, and shown to the authority on request","No, it stays at the company","Only if the tachograph is broken"]},x:{it:"Art. 17 cpv. 1.",en:"Art. 17 para. 1."}},
+{c:'C',art:'Art. 17 cpv. 1',it:{q:"Come si compila il libretto di lavoro?",a:["In modo leggibile e indelebile","A matita","Solo a fine settimana"]},en:{q:"How is the work record book filled in?",a:["Legibly and indelibly","In pencil","Only at the end of the week"]},x:{it:"Art. 17 cpv. 1.",en:"Art. 17 para. 1."}},
+{c:'C',art:'Art. 17 cpv. 3',it:{q:"Il libretto di lavoro è...",a:["Personale e non trasferibile","Legato al veicolo","Condivisibile tra due autisti"]},en:{q:"The work record book is...",a:["Personal and non-transferable","Vehicle-bound","Shareable between two drivers"]},x:{it:"Art. 17 cpv. 3.",en:"Art. 17 para. 3."}},
+{c:'C',art:'Art. 17 cpv. 3',it:{q:"Lavori per due datori di lavoro: quanti libretti?",a:["Uno solo","Uno per datore di lavoro","Due: originale e copia"]},en:{q:"You work for two employers: how many record books?",a:["One only","One per employer","Two: original and copy"]},x:{it:"Art. 17 cpv. 3.",en:"Art. 17 para. 3."}},
+{c:'C',art:'Art. 17 cpv. 4',it:{q:"Devi guidare all'improvviso senza libretto di lavoro: cosa fai?",a:["Lo annuncio subito all'autorità e compilo il libretto dopo","Guido senza registrare","Rifiuto di guidare"]},en:{q:"You suddenly have to drive without a record book: what do you do?",a:["Report it immediately to the authority and fill in the book afterwards","Drive without recording","Refuse to drive"]},x:{it:"Art. 17 cpv. 4.",en:"Art. 17 para. 4."}},
+{c:'C',art:'Art. 17 cpv. 5',it:{q:"Chi consegna il libretto di lavoro al conducente?",a:["Il datore di lavoro, gratuitamente","L'USTRA, a pagamento","Il conducente lo compra"]},en:{q:"Who gives the record book to the driver?",a:["The employer, free of charge","The Federal Roads Office, for a fee","The driver buys it"]},x:{it:"Art. 17 cpv. 5.",en:"Art. 17 para. 5."}},
+{c:'C',art:'Art. 18 cpv. 1',it:{q:"Appena ricevuto il libretto, cosa si compila subito?",a:["La prima pagina della copertina","Il primo foglio quotidiano","Nulla"]},en:{q:"As soon as the book is received, what is filled in immediately?",a:["The first page of the cover","The first daily sheet","Nothing"]},x:{it:"Art. 18 cpv. 1.",en:"Art. 18 para. 1."}},
+{c:'C',art:'Art. 18 cpv. 2',it:{q:"Quando si compila il foglio settimanale?",a:["Ogni giorno, all'inizio e alla fine del lavoro","Solo alla fine del lavoro","Una volta a settimana"]},en:{q:"When is the weekly sheet filled in?",a:["Every day, at the start and end of work","Only at the end of work","Once a week"]},x:{it:"Art. 18 cpv. 2.",en:"Art. 18 para. 2."}},
+{c:'C',art:'Art. 18 cpv. 2',it:{q:"Cosa iscrive il lavoratore nel foglio settimanale?",a:["Riposo precedente e ora d'inizio; targa prima della corsa; ora di fine","Solo l'ora d'inizio","Totale ore a fine settimana"]},en:{q:"What does the employee enter on the weekly sheet?",a:["Previous rest and start time; plate before the trip; end time","Only the start time","Total hours at the end of the week"]},x:{it:"Art. 18 cpv. 2.",en:"Art. 18 para. 2."}},
+{c:'C',art:'Art. 18 cpv. 3',it:{q:"Cosa iscrive l'indipendente nel foglio settimanale?",a:["Riposo precedente, ora di partenza e targa prima della corsa; ora di fine corsa","Solo la targa","Nulla: è dispensato"]},en:{q:"What does the self-employed driver enter on the weekly sheet?",a:["Previous rest, departure time and plate before the trip; end time","Only the plate","Nothing: he is exempt"]},x:{it:"Art. 18 cpv. 3.",en:"Art. 18 para. 3."}},
+{c:'C',art:'Art. 18 cpv. 2',it:{q:"Tachigrafo funzionante: cosa serve nel libretto?",a:["Solo il foglio settimanale: riposo, inizio, fine, targa","Foglio settimanale e quotidiano con grafico","Nulla"]},en:{q:"Tachograph working: what is needed in the book?",a:["Only the weekly sheet: rest, start, end, plate","Weekly and daily sheet with graph","Nothing"]},x:{it:"Art. 18 cpv. 2.",en:"Art. 18 para. 2."}},
+{c:'C',art:'Art. 18 cpv. 4',it:{q:"Quando si compila anche il foglio quotidiano?",a:["Se il tachigrafo non funziona o il veicolo è già stato guidato da due conducenti quel giorno","Sempre","Solo su ordine dell'autorità"]},en:{q:"When is the daily sheet also filled in?",a:["If the tachograph does not work or the vehicle has already been driven by two drivers that day","Always","Only on the authority's order"]},x:{it:"Art. 18 cpv. 4.",en:"Art. 18 para. 4."}},
+{c:'C',art:'Art. 18 cpv. 4',it:{q:"Da quale conducente in poi, nello stesso giorno, serve il foglio quotidiano?",a:["Dal terzo","Dal secondo","Dal quarto"]},en:{q:"From which driver onwards, on the same day, is the daily sheet needed?",a:["From the third","From the second","From the fourth"]},x:{it:"Art. 18 cpv. 4 lett. b.",en:"Art. 18 para. 4 let. b."}},
+{c:'C',art:'Art. 18 cpv. 4',it:{q:"Tutta l'attività è registrata sul disco: serve il foglio quotidiano?",a:["No, è superfluo (il foglio settimanale resta)","Sì, sempre","Sì, con tachigrafo CH"]},en:{q:"All activity is recorded on the sheet: is the daily sheet needed?",a:["No, it is superfluous (the weekly sheet remains)","Yes, always","Yes, with a CH tachograph"]},x:{it:"Art. 18 cpv. 4.",en:"Art. 18 para. 4."}},
+{c:'C',art:'Art. 18 cpv. 5',it:{q:"Come si fanno le iscrizioni grafiche sul foglio quotidiano?",a:["Di continuo, a ogni cambio di attività; pause sotto 15 minuti non si iscrivono","Una volta a fine giornata","Solo per la guida"]},en:{q:"How are graphic entries made on the daily sheet?",a:["Continuously, at every change of activity; breaks under 15 minutes are not entered","Once at the end of the day","Only for driving"]},x:{it:"Art. 18 cpv. 5: a fine lavoro totali, km e firma.",en:"Art. 18 para. 5: at the end totals, km and signature."}},
+{c:'C',art:'Art. 18 cpv. 6',it:{q:"Foglio quotidiano dell'indipendente: cosa iscrive graficamente?",a:["Solo la durata della guida","Tutte le attività","Nulla"]},en:{q:"Self-employed driver's daily sheet: what is recorded graphically?",a:["Only driving time","All activities","Nothing"]},x:{it:"Art. 18 cpv. 6.",en:"Art. 18 para. 6."}},
+{c:'C',art:'Art. 18 cpv. 7',it:{q:"Entro quando consegnare i fogli del libretto al datore di lavoro?",a:["Al più tardi il primo giorno di lavoro della settimana successiva","Entro due settimane","Ogni sera"]},en:{q:"By when must the book's sheets be handed to the employer?",a:["At the latest on the first working day of the following week","Within two weeks","Every evening"]},x:{it:"Art. 18 cpv. 7.",en:"Art. 18 para. 7."}},
+{c:'C',art:'Art. 18 cpv. 8',it:{q:"Quando si restituisce il libretto al datore di lavoro?",a:["Quando è pieno o finisce il rapporto di lavoro","Mai","Ogni mese"]},en:{q:"When is the book returned to the employer?",a:["When it is full or the employment ends","Never","Every month"]},x:{it:"Art. 18 cpv. 8.",en:"Art. 18 para. 8."}},
+{c:'C',art:'Art. 18',it:{q:"Dischi usati in modo legato al veicolo: serve il libretto?",a:["Sì, con il foglio settimanale ogni giorno","No","Solo il foglio quotidiano"]},en:{q:"Sheets used vehicle-bound: is the book needed?",a:["Yes, with the weekly sheet every day","No","Only the daily sheet"]},x:{it:"Art. 17 e 18.",en:"Arts. 17 and 18."}},
+{c:'C',art:'Art. 19 cpv. 1',it:{q:"Dispensa dal foglio settimanale: condizione e durata?",a:["Rapporti giornalieri interni con i dati richiesti; 2 anni, a nome del conducente","Tachigrafo digitale; 5 anni","Nessuna condizione; illimitata"]},en:{q:"Exemption from the weekly sheet: condition and duration?",a:["Internal daily reports with the required data; 2 years, in the driver's name","Digital tachograph; 5 years","No condition; unlimited"]},x:{it:"Art. 19 cpv. 1.",en:"Art. 19 para. 1."}},
+{c:'C',art:'Art. 19 cpv. 3',it:{q:"Dispensa per orario quotidiano invariabile: durata?",a:["1 anno; non prorogata se più di 20 corse fuori orario","2 anni","5 anni"]},en:{q:"Exemption for an unchanging daily schedule: duration?",a:["1 year; not renewed if more than 20 trips outside the schedule","2 years","5 years"]},x:{it:"Art. 19 cpv. 3.",en:"Art. 19 para. 3."}},
+{c:'C',art:'Art. 19',it:{q:"Con la dispensa, quando va comunque compilato il foglio quotidiano?",a:["Quando il tachigrafo non funziona","Mai","Ogni domenica"]},en:{q:"With an exemption, when must the daily sheet still be filled in?",a:["When the tachograph does not work","Never","Every Sunday"]},x:{it:"Art. 19 cpv. 1 e 3.",en:"Art. 19 paras. 1 and 3."}},
+{c:'C',art:'Art. 19 cpv. 2 e 4',it:{q:"Cosa portare con sé se si ha una dispensa?",a:["La decisione di dispensa (e i rapporti interni della settimana), con il libretto","Nulla","Solo la licenza"]},en:{q:"What to carry if you have an exemption?",a:["The exemption decision (and the week's internal reports), with the book","Nothing","Only the licence"]},x:{it:"Art. 19 cpv. 2 e 4.",en:"Art. 19 paras. 2 and 4."}},
+{c:'C',art:'Art. 19 cpv. 6',it:{q:"La dispensa vale all'estero?",a:["No: all'estero il libretto va sempre compilato","Sì","Solo nell'UE"]},en:{q:"Is the exemption valid abroad?",a:["No: abroad the book must always be filled in","Yes","Only in the EU"]},x:{it:"Art. 19 cpv. 6.",en:"Art. 19 para. 6."}},
+{c:'C',art:'Art. 19',it:{q:"Tassista con dispensa cantonale dal libretto: deve compilarlo?",a:["No","Sì, per le corse professionali","Sì, per le corse private"]},en:{q:"Taxi driver with a cantonal exemption from the book: must he fill it in?",a:["No","Yes, for professional trips","Yes, for private trips"]},x:{it:"Art. 19 (salvo tachigrafo guasto).",en:"Art. 19 (unless the tachograph is broken)."}},
+{c:'C',art:'Art. 21 cpv. 1',it:{q:"Cosa iscrive il datore di lavoro nel registro per ogni conducente?",a:["Guida giornaliera, lavoro per giorno e settimana, straordinari, riposi e semigiornate, lavoro per altri datori","Solo i salari","Solo i km"]},en:{q:"What does the employer enter in the register for each driver?",a:["Daily driving, work per day and week, overtime, rest days and half-days, work for other employers","Only wages","Only km"]},x:{it:"Art. 21 cpv. 1.",en:"Art. 21 para. 1."}},
+{c:'C',art:'Art. 21 cpv. 2',it:{q:"Guida giornaliera chiaramente sotto 7 ore: va iscritta a parte nel registro?",a:["No, basta includerla nel lavoro totale","Sì, sempre","Solo se sotto 5 ore"]},en:{q:"Daily driving clearly under 7 hours: must it be entered separately in the register?",a:["No, including it in total work is enough","Yes, always","Only if under 5 hours"]},x:{it:"Art. 21 cpv. 2.",en:"Art. 21 para. 2."}},
+{c:'C',art:'Art. 21 cpv. 3',it:{q:"Registro per gli indipendenti: cosa basta?",a:["Guida giornaliera e riposo settimanale","Nulla","Anche i salari"]},en:{q:"Register for the self-employed: what is enough?",a:["Daily driving and weekly rest","Nothing","Wages too"]},x:{it:"Art. 21 cpv. 3.",en:"Art. 21 para. 3."}},
+{c:'C',art:'Art. 21 cpv. 5',it:{q:"Entro quando il registro deve essere completo?",a:["A fine mese per il penultimo mese","A fine mese per il mese in corso","A fine anno"]},en:{q:"By when must the register be complete?",a:["By month end for the month before last","By month end for the current month","By year end"]},x:{it:"Art. 21 cpv. 5.",en:"Art. 21 para. 5."}},
+{c:'C',art:'Art. 21 cpv. 6',it:{q:"Registro tenuto da terzi: chi risponde dell'esattezza?",a:["Il datore di lavoro","Il terzo","Il conducente"]},en:{q:"Register kept by third parties: who is responsible for accuracy?",a:["The employer","The third party","The driver"]},x:{it:"Art. 21 cpv. 6.",en:"Art. 21 para. 6."}},
+{c:'C',art:'Art. 22 cpv. 1',it:{q:"Come deve ripartire il lavoro il datore di lavoro?",a:["In modo che il conducente possa rispettare l'OLR 2","Come vuole","Sfruttando tutti gli straordinari"]},en:{q:"How must the employer allocate work?",a:["So that the driver can comply with the OLR 2","As he wishes","Using up all overtime"]},x:{it:"Art. 22 cpv. 1.",en:"Art. 22 para. 1."}},
+{c:'C',art:'Art. 22 cpv. 2',it:{q:"Chi vigila che il conducente rispetti l'OLR 2 e consegni i mezzi di controllo?",a:["Il datore di lavoro","Gli organi di controllo","Il legislatore"]},en:{q:"Who ensures the driver complies with the OLR 2 and hands in the control means?",a:["The employer","The control bodies","The legislator"]},x:{it:"Art. 22 cpv. 2.",en:"Art. 22 para. 2."}},
+{c:'C',art:'Art. 22 cpv. 3',it:{q:"Chi fornisce libretto, chiavi e dischi del tachigrafo?",a:["Il datore di lavoro","Il conducente, a sue spese","L'autorità"]},en:{q:"Who provides the book, keys and tachograph sheets?",a:["The employer","The driver, at his own expense","The authority"]},x:{it:"Art. 22 cpv. 3.",en:"Art. 22 para. 3."}},
+{c:'C',art:'Art. 22 cpv. 4',it:{q:"Cosa contiene l'elenco dei conducenti del datore di lavoro?",a:["Nome, indirizzo, data di nascita, numero del libretto","Salari","Targhe e km"]},en:{q:"What does the employer's list of drivers contain?",a:["Name, address, date of birth, book number","Wages","Plates and km"]},x:{it:"Art. 22 cpv. 4.",en:"Art. 22 para. 4."}},
+{c:'C',art:'Art. 23 cpv. 1-2',it:{q:"L'autorità chiede informazioni e accesso all'azienda. Si può rifiutare?",a:["No","Sì, senza mandato","Sì, se indipendente"]},en:{q:"The authority asks for information and access to the business. May you refuse?",a:["No","Yes, without a warrant","Yes, if self-employed"]},x:{it:"Art. 23 cpv. 1 e 2.",en:"Art. 23 paras. 1 and 2."}},
+{c:'C',art:'Art. 23 cpv. 3',it:{q:"Per quanto si conservano registro, dischi e fogli del libretto?",a:["2 anni (3 anni i dischi UE)","1 anno","5 anni"]},en:{q:"How long are the register, sheets and book pages kept?",a:["2 years (3 years for EU sheets)","1 year","5 years"]},x:{it:"Art. 23 cpv. 3; OLR 1 art. 18 cpv. 3.",en:"Art. 23 para. 3; OLR 1 Art. 18 para. 3."}},
+{c:'C',art:'Art. 23 cpv. 3',it:{q:"Dove si conservano i mezzi di controllo?",a:["Presso la sede dell'azienda (o la succursale autonoma)","A casa del conducente","Presso l'autorità"]},en:{q:"Where are the control means kept?",a:["At the business premises (or the autonomous branch)","At the driver's home","At the authority"]},x:{it:"Art. 23 cpv. 3 e 4.",en:"Art. 23 paras. 3 and 4."}},
+{c:'C',art:'Art. 28 cpv. 2',it:{q:"Pena per chi non tiene il tachigrafo in funzione o fa iscrizioni false?",a:["Multa","Avvertimento","Nessuna"]},en:{q:"Penalty for not keeping the tachograph running or making false entries?",a:["Fine","Warning","None"]},x:{it:"Art. 28 cpv. 2.",en:"Art. 28 para. 2."}},
+{c:'C',art:'Art. 28 cpv. 4',it:{q:"Datore di lavoro che induce o non impedisce una violazione: pena?",a:["La stessa del conducente","Nessuna","Solo per reati gravi"]},en:{q:"Employer who induces or fails to prevent a violation: penalty?",a:["The same as the driver","None","Only for serious offences"]},x:{it:"Art. 28 cpv. 4.",en:"Art. 28 para. 4."}},
+{c:'C',art:'Art. 28 cpv. 4',it:{q:"Il giudice può attenuare la pena del lavoratore?",a:["Sì, o esentarlo, se le circostanze lo giustificano","No","Solo se indipendente"]},en:{q:"May the judge reduce the employee's penalty?",a:["Yes, or waive it, if circumstances justify","No","Only if self-employed"]},x:{it:"Art. 28 cpv. 4.",en:"Art. 28 para. 4."}},
+{c:'C',art:'Art. 29',it:{q:"A chi spetta il perseguimento penale?",a:["Ai Cantoni (dove avviene o si accerta l'infrazione)","All'USTRA","Ai Comuni"]},en:{q:"Who is responsible for criminal prosecution?",a:["The cantons (where the offence occurs or is established)","The Federal Roads Office","The municipalities"]},x:{it:"Art. 29.",en:"Art. 29."}},
+{c:'C',art:'Art. 30',it:{q:"Una violazione dell'OLR 2 può portare alla revoca della licenza?",a:["Sì, se è un caso previsto dagli art. 14 o 16 LCStr","No, mai","Sì, sempre"]},en:{q:"Can an OLR 2 violation lead to licence withdrawal?",a:["Yes, if it is a case under Arts. 14 or 16 of the Road Traffic Act","No, never","Yes, always"]},x:{it:"Art. 30.",en:"Art. 30."}},
+{c:'C',art:'Art. 31-32',it:{q:"Chi applica l'OLR 2 e chi vigila?",a:["I Cantoni applicano; l'USTRA vigila","L'USTRA applica; i Cantoni vigilano","I Comuni"]},en:{q:"Who enforces the OLR 2 and who supervises?",a:["Cantons enforce; the Federal Roads Office supervises","The Federal Roads Office enforces; cantons supervise","Municipalities"]},x:{it:"Art. 31 e 32.",en:"Arts. 31 and 32."}},
+{c:'C',art:'Art. 31 cpv. 5',it:{q:"L'autorità deve esaminare le denunce per inosservanza dell'OLR 2?",a:["Sì, e intervenire se giustificate","No","Solo se dalla polizia"]},en:{q:"Must the authority examine complaints about OLR 2 non-compliance?",a:["Yes, and act if justified","No","Only if from the police"]},x:{it:"Art. 31 cpv. 5.",en:"Art. 31 para. 5."}},
+/* ===== VARIE ===== */
+{c:'V',art:'OETV art. 58',it:{q:"Profondità minima del profilo dei pneumatici?",a:["1,6 mm","2 mm","2,6 mm"]},en:{q:"Minimum tyre tread depth?",a:["1.6 mm","2 mm","2.6 mm"]},x:{it:"OETV art. 58.",en:"VTS Art. 58."}},
+{c:'V',art:'ONC art. 2',it:{q:"Regole speciali per tassisti che prendono medicamenti?",a:["No: vale la regola generale, chi non è idoneo non guida","Vietati nelle 6 ore prima","Pause più lunghe"]},en:{q:"Special rules for taxi drivers taking medication?",a:["No: the general rule applies, anyone unfit must not drive","Forbidden in the 6 hours before","Longer breaks"]},x:{it:"ONC art. 2 cpv. 1.",en:"VRV Art. 2 para. 1."}},
+{c:'V',art:'ONC art. 60',it:{q:"Quante persone in un taxi?",a:["Quanti sono i posti nella licenza di circolazione","Max 4 oltre al conducente","Max 5"]},en:{q:"How many people in a taxi?",a:["As many as the seats in the registration document","Max 4 besides the driver","Max 5"]},x:{it:"ONC art. 60 cpv. 2.",en:"VRV Art. 60 para. 2."}},
+{c:'V',art:'ONC art. 57',it:{q:"Chi risponde dello stato regolamentare del veicolo?",a:["Conducente e detentore","Solo l'officina","Solo il detentore"]},en:{q:"Who is responsible for the vehicle's proper condition?",a:["Driver and keeper","Only the workshop","Only the keeper"]},x:{it:"ONC art. 57 cpv. 1.",en:"VRV Art. 57 para. 1."}},
+{c:'V',art:'ONC art. 30 / 73',it:{q:"Bagagli e merci nel taxi: cosa vale?",a:["Carico fissato, visuale libera, nessuna sporgenza oltre i limiti","Sporgenza libera se il cliente è d'accordo","Merci vietate"]},en:{q:"Luggage and goods in the taxi: what applies?",a:["Load secured, clear view, no overhang beyond the limits","Free overhang if the customer agrees","Goods forbidden"]},x:{it:"ONC art. 30 e 73.",en:"VRV Arts. 30 and 73."}},
+
+];
+
+/* ================= CONSTANTS (official asa CUT exam format for BPT / B121) ================= */
+const EXAM_N = 30;          // questions per exam
+const EXAM_MIN = 45;        // minutes
+const MAX_MISTAKES = 3;     // max errors allowed
+const CRITICAL_S = 5*60;    // timer turns red
+const CATS = ['T','P','O','C','V'];
+const CAT_MIN = {T:3,P:3,O:7,C:9,V:1};
+const VERSION = 'v5 · OLR 2 stato 01.03.2025';
+
+/* ================= STATE ================= */
+let lang = localStorage.getItem('b121lang2') || null;
+let view = lang ? 'start' : 'lang';   // lang | start | exam | overview | result | train | trainresult
+let exam = null;
+let train = null;
+const instantFb = true;   // correct answer is always shown right after answering
+const $ = id=>document.getElementById(id);
+const esc = s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function shuffled(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+const T = ()=>UI[lang||'en'];
+const catName = c => (T().cat[c]||(c==='V'?'Varie':c));
+
+/* ================= VIEWS ================= */
+function loginInfoBlock(){
+  const t=T();
+  return `<table class="logininfo"><tr><td>${t.loggedIn}</td><td>Demo</td></tr>
+  <tr><td>${t.category}</td><td>B121</td></tr>
+  <tr><td>${t.device}</td><td>Web</td></tr></table>`;
+}
+
+function renderLang(){
+  $('app').innerHTML = `
+    <div class="header"></div>
+    ${lang?loginInfoBlock():`<table class="logininfo"><tr><td>Logged in:</td><td>Demo</td></tr><tr><td>Category:</td><td>B121</td></tr><tr><td>Device:</td><td>Web</td></tr></table>`}
+    <div class="langpage">
+      <div style="margin-top:40px; text-align:center; font-size:13px; line-height:1.5;">
+        Select a language<br>Seleziona una lingua
+      </div>
+      <div class="langcards">
+        <button class="langcard" onclick="pickLang('it')">Italiano</button>
+        <button class="langcard" onclick="pickLang('en')">English</button>
+      </div>
+    </div>`;
+}
+function pickLang(l){ lang=l; localStorage.setItem('b121lang2',l); view='start'; render(); }
+
+function poolCounts(){ const c={}; POOL.forEach(p=>{c[p.c]=(c[p.c]||0)+1;}); return c; }
+
+function renderStart(){
+  const t=T(); const pc=poolCounts();
+  $('app').innerHTML = `
+    <div class="header"></div>
+    ${loginInfoBlock()}
+    <div class="scrollpanel scrollpanel-noheader" style="top:80px;">
+    <div class="startpage">
+      <h1>${t.startTitle}</h1>
+      <div class="goodluck">${t.goodLuck}</div>
+      <div class="disclaimer">${t.disclaimer}</div>
+      <div class="examtable">
+        <table>
+          <tr><td>${t.yourExam}</td><td>${t.catValue}<br>${t.oneAnswer}</td></tr>
+          <tr><td>${t.numQuestions}</td><td>${EXAM_N}</td></tr>
+          <tr><td>${t.maxScore}</td><td>${EXAM_N}</td></tr>
+          <tr><td>${t.maxMistakes}</td><td>${MAX_MISTAKES}</td></tr>
+          <tr><td>${t.time}</td><td>${t.minutes}</td></tr>
+        </table>
+      </div>
+      <button class="pbtn invert startbtn" onclick="startExam()">${t.startExam}</button>
+
+    </div>
+    </div>
+    <div class="footer justified">
+      <span style='font-size:12px;color:var(--dark-grey)'>${VERSION}</span>
+      <button class="pbtn" onclick="view='lang';render()">${IC.lang} ${lang==='en'?'English':'Italiano'}</button>
+    </div>`;
+}
+
+/* ===== exam persistence ===== */
+function saveExam(){
+  if(!exam) return;
+  try{ localStorage.setItem('b121exam', JSON.stringify({qs:exam.qs, answers:exam.answers, marked:exam.marked, cur:exam.cur, total:exam.total, left:exam.left, fb:exam.fb, savedAt:Date.now()})); }catch(e){}
+}
+function clearSaved(){ try{ localStorage.removeItem('b121exam'); }catch(e){} }
+function resumeExam(){
+  try{
+    const s=JSON.parse(localStorage.getItem('b121exam')||'null');
+    if(!s || !Array.isArray(s.qs) || s.qs.length!==EXAM_N || !Array.isArray(s.answers)) return false;
+    if(s.qs.some(q=>!POOL[q.p] || !Array.isArray(q.perm) || q.perm.length!==3)) { clearSaved(); return false; }
+    const elapsed=Math.floor((Date.now()-(s.savedAt||Date.now()))/1000);
+    exam={qs:s.qs, answers:s.answers, marked:s.marked, cur:s.cur||0, total:s.total, left:Math.max(0, s.left-elapsed), fb:true, timerId:null};
+    view='exam';
+    if(exam.left<=0){ exam.left=0; render(); finish(); return true; }
+    exam.timerId=setInterval(tick, 1000);
+    return true;
+  }catch(e){ return false; }
+}
+
+/* ===== stratified random draw: every topic is represented, proportionally to the pool ===== */
+function pickExam(){
+  const byCat={}; POOL.forEach((p,i)=>{(byCat[p.c]=byCat[p.c]||[]).push(i);});
+  const cats=Object.keys(byCat), total=POOL.length;
+  const counts={}; let sum=0;
+  cats.forEach(c=>{ counts[c]=Math.min(byCat[c].length, Math.max(CAT_MIN[c]||1, Math.round(EXAM_N*byCat[c].length/total))); sum+=counts[c]; });
+  while(sum>EXAM_N){ const c=cats.reduce((a,b)=>counts[a]>=counts[b]?a:b); counts[c]--; sum--; }
+  while(sum<EXAM_N){ const c=cats.filter(k=>counts[k]<byCat[k].length).reduce((a,b)=>counts[a]/byCat[a].length<=counts[b]/byCat[b].length?a:b); counts[c]++; sum++; }
+  let picks=[]; cats.forEach(c=>{ picks=picks.concat(shuffled(byCat[c]).slice(0,counts[c])); });
+  return shuffled(picks);
+}
+function startExam(){
+  clearSaved();
+  if(exam && exam.timerId) clearInterval(exam.timerId);
+  const picks = pickExam();
+  exam = {
+    qs: picks.map(p=>({p, perm: shuffled([0,1,2])})),
+    answers: Array(EXAM_N).fill(null),
+    marked: Array(EXAM_N).fill(false),
+    cur: 0,
+    total: EXAM_MIN*60,
+    left: EXAM_MIN*60,
+    fb: true,
+    timerId: null
+  };
+  exam.timerId = setInterval(tick, 1000);
+  view='exam'; render();
+}
+
+function tick(){
+  if(!exam) return;
+  exam.left--;
+  if(exam.left<=0){
+    clearInterval(exam.timerId);
+    exam.left=0;
+    showDialog(`<p>${T().timeUp}</p>`, [[T().ok, ()=>{closeDialog(); finish();}, true]]);
+    return;
+  }
+  saveExam();
+  const el=$('timelabel'), fill=$('timefill');
+  if(el){ el.innerHTML = timeHTML(); el.classList.toggle('critical', exam.left<=CRITICAL_S); }
+  if(fill){ fill.style.width = (exam.left/exam.total*100)+'%'; }
+}
+function timeHTML(){
+  const m=Math.floor(exam.left/60), s=exam.left%60;
+  return `${T().remaining}&nbsp;<b>${m}:${String(s).padStart(2,'0')}</b>`;
+}
+
+/* ===== answer row renderers ===== */
+function answerRowPlain(text, sel, onclick){
+  return `<div class="answer ${sel?'checked selected':''}" onclick="${onclick}">
+    <span class="pcheck"></span>
+    <span class="atext">${esc(text)}</span>
+  </div>`;
+}
+function answerRowGraded(text, isC, sel, anim){
+  let cls='answer'; if(sel) cls+=' checked selected';
+  if(sel && anim) cls += isC ? ' flashgood' : ' flashbad';
+  let ring=''; if(isC) ring='correct'; else if(sel) ring='incorrect';
+  return `<div class="${cls}" style="cursor:default">
+    <span class="${ring}"><span class="ring${ring&&anim?' anim':''}"><span class="pcheck"></span></span></span>
+    <span class="atext">${esc(text)}</span>
+  </div>`;
+}
+
+function renderExam(){
+  const t=T(), e=exam, qq=e.qs[e.cur], P=POOL[qq.p], q=P[lang];
+  const answeredCount = e.answers.filter(a=>a!==null).length;
+  const markedCount = e.marked.filter(Boolean).length;
+  const answered = e.answers[e.cur]!==null;
+  const graded = e.fb && answered;
+  $('app').innerHTML = `
+    <div class="header justified">
+      <div>
+        <button class="pbtn" onclick="view='overview';render()">${IC.menu} <span>${t.overview}</span></button>
+      </div>
+      <div style="display:flex; align-items:center;">
+        <div class="hstack">
+          <div class="row questionBookmarked">${IC.bookmark}<span>${t.marked(markedCount)}</span></div>
+          <div class="row questionAnswered">${IC.check}<span>${answeredCount} / ${EXAM_N}</span></div>
+        </div>
+        <div class="timewrap">
+          <div class="cut-time">
+            <div class="fill" id="timefill" style="width:${e.left/e.total*100}%"></div>
+            <div class="label ${e.left<=CRITICAL_S?'critical':''}" id="timelabel">${timeHTML()}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="scrollpanel">
+      <div class="examcontainer">
+        <div class="self-center">
+          <button class="navbtn back" onclick="nav(-1)" ${e.cur===0?'disabled':''}>${IC.chevL}</button>
+        </div>
+        <div class="exampage">
+          <div class="content">
+            <div class="title">
+              <span class="titleText">${t.question} ${e.cur+1} ${t.of} ${EXAM_N}</span>
+              <div class="flexspacer"></div>
+              <button class="pbtn bookmarkbtn" onclick="toggleMark()">
+                ${IC.bookmark} <span>${e.marked[e.cur]?t.removeBookmark:t.bookmark}</span>
+              </button>
+            </div>
+            <div class="qcols">
+              <div class="contentLeft">
+                <span class="questionTitle">${esc(q.q)}</span>
+              </div>
+              <div class="contentRight">
+                ${qq.perm.map(orig=>{
+                  const sel = e.answers[e.cur]===orig;
+                  if(!graded) return answerRowPlain(q.a[orig], sel, `choose(${orig})`);
+                  return answerRowGraded(q.a[orig], orig===0, sel, e.justAnswered);
+                }).join('')}
+                ${graded && P.x ? `<div class="explain"><b>${esc(P.art)}</b> — ${esc(P.x[lang])}</div>` : ''}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="self-center">
+          <button class="navbtn forward" onclick="nav(1)" ${e.cur===EXAM_N-1?'disabled':''}>${IC.chevR}</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer justified">
+      <button class="pbtn" onclick="showHelp()">${IC.help} ${t.help}</button>
+      <button class="pbtn" onclick="askFinish()">${IC.check} ${t.closeExam}</button>
+      <button class="pbtn" onclick="switchLangInline()">${IC.lang} ${lang==='en'?'English':'Italiano'}</button>
+    </div>
+    <div class="backdrop" id="dlgback"><div class="pdialog" id="dlg"></div></div>`;
+}
+
+function choose(orig){
+  if(exam.answers[exam.cur]!==null) return;   // locked after the first answer; the correct answer is shown immediately
+  exam.answers[exam.cur] = orig;
+  exam.justAnswered = true;
+  saveExam();
+  render();
+  exam.justAnswered = false;
+}
+function nav(d){
+  exam.cur=Math.min(EXAM_N-1,Math.max(0,exam.cur+d));
+  saveExam();
+  render();
+}
+function toggleMark(){ exam.marked[exam.cur]=!exam.marked[exam.cur]; saveExam(); render(); }
+function gotoQ(i){ exam.cur=i; view='exam'; saveExam(); render(); }
+function switchLangInline(){ lang = lang==='en'?'it':'en'; localStorage.setItem('b121lang2',lang); render(); }
+
+function renderOverview(){
+  const t=T(), e=exam;
+  const answeredCount=e.answers.filter(a=>a!==null).length;
+  const markedCount=e.marked.filter(Boolean).length;
+  $('app').innerHTML = `
+    <div class="header justified">
+      <div>
+        <button class="pbtn" onclick="view='exam';render()">${IC.menu} <span>${t.closeOverview}</span></button>
+      </div>
+      <div class="hstack">
+        <div class="row questionBookmarked">${IC.bookmark}<span>${t.marked(markedCount)}</span></div>
+        <div class="row questionAnswered">${IC.check}<span>${t.answered(answeredCount)}</span></div>
+      </div>
+    </div>
+    <div class="scrollpanel">
+      <div class="ovwrap">
+        ${e.qs.map((_,i)=>`
+          <div class="list-item">
+            <span class="flag ${e.marked[i]?'':'hiddenflag'}">${IC.flag}</span>
+            <button class="pbtn ovbtn ${e.answers[i]!==null?'invert answered':''}" onclick="gotoQ(${i})">
+              <span class="button-text">${i+1}</span>
+            </button>
+          </div>`).join('')}
+      </div>
+    </div>
+    <div class="footer justified">
+      <button class="pbtn" onclick="showHelp()">${IC.help} ${t.help}</button>
+      <button class="pbtn" onclick="askFinish()">${IC.check} ${t.closeExam}</button>
+      <span></span>
+    </div>
+    <div class="backdrop" id="dlgback"><div class="pdialog" id="dlg"></div></div>`;
+}
+
+/* ===== dialogs ===== */
+function showDialog(html, buttons){
+  const back=$('dlgback');
+  if(!back) return;
+  $('dlg').innerHTML = html + `<div class="dlgbuttons">${buttons.map((b,i)=>
+    `<button class="pbtn ${b[2]?'invert':''}" id="dlgbtn${i}">${esc(b[0])}</button>`).join('')}</div>`;
+  buttons.forEach((b,i)=>{ $('dlgbtn'+i).onclick=b[1]; });
+  back.classList.add('open');
+}
+function closeDialog(){ const b=$('dlgback'); if(b) b.classList.remove('open'); }
+function showHelp(){
+  const t=T();
+  showDialog(t.helpTexts.map(h=>`<p><b>${esc(h[0])}</b><br>${esc(h[1])}</p>`).join(''), [[t.ok, closeDialog, true]]);
+}
+function askFinish(){
+  const t=T();
+  const missing = exam.answers.some(a=>a===null);
+  showDialog(`<p>${missing?t.confirmMissing:t.confirmAll}</p>`,
+    [[t.doNotClose, closeDialog, false],[t.closeNow, ()=>{closeDialog();finish();}, true]]);
+}
+
+function finish(){
+  clearInterval(exam.timerId);
+  clearSaved();
+  exam.usedS = exam.total - exam.left;
+  view='result'; render();
+  window.scrollTo(0,0);
+}
+
+function topicTable(items){ // items: [{p, ok}]
+  const t=T(); const st={};
+  items.forEach(it=>{ const c=POOL[it.p].c; st[c]=st[c]||{n:0,ok:0}; st[c].n++; if(it.ok) st[c].ok++; });
+  return `<table class="cattable">${CATS.filter(c=>st[c]).map(c=>`<tr><td>${esc(catName(c))}</td><td><b>${st[c].ok} / ${st[c].n}</b></td></tr>`).join('')}</table>`;
+}
+
+function reviewBlock(qs, answers, marked){
+  const t=T();
+  return qs.map((qq,i)=>{
+    const P=POOL[qq.p], q=P[lang], user=answers[i];
+    return `<div>
+      <div class="rquestion"><span class="qnum">${i+1}.</span> ${esc(q.q)} <span class="artref">${esc(P.art)}</span> ${marked&&marked[i]?`<span class="rmarkedflag">⚑</span>`:''} ${user===null||user===undefined?`<span style="color:var(--error-color); font-weight:400; font-size:13px;">— ${t.notAnswered}</span>`:''}</div>
+      ${qq.perm.map(orig=>answerRowGraded(q.a[orig], orig===0, user===orig, false)).join('')}
+      ${P.x?`<div class="explain">${esc(P.x[lang])}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function renderResult(){
+  const t=T(), e=exam;
+  const correct=e.answers.filter(a=>a===0).length;
+  const mistakes=EXAM_N-correct;
+  const pass=mistakes<=MAX_MISTAKES;
+  const mm=Math.floor(e.usedS/60), ss=e.usedS%60;
+  $('app').innerHTML = `
+    <div class="header"></div>
+    ${loginInfoBlock()}
+    <div class="scrollpanel scrollpanel-noheader" style="top:80px;">
+    <div class="resultpage">
+      <h1>${t.examResult}</h1>
+      <div class="verdict ${pass?'pass':'fail'}">${pass?t.passed:t.failed}</div>
+      <div class="examtable">
+        <table>
+          <tr><td>${t.score}</td><td>${correct} / ${EXAM_N}</td></tr>
+          <tr><td>${t.mistakes}</td><td>${mistakes} (max. ${MAX_MISTAKES})</td></tr>
+          <tr><td>${t.time}</td><td>${mm}:${String(ss).padStart(2,'0')}</td></tr>
+        </table>
+      </div>
+      <button class="pbtn invert" style="margin-top:26px;" onclick="startExam()">${t.newExam}</button>
+      <button class="pbtn" style="margin-top:26px;" onclick="view='start';render()">${t.exit}</button>
+
+      <div class="reviewwrap">
+        <h2>${t.review}</h2><div style="font-size:13px; color:var(--night-rider); margin:8px 0 2px; line-height:1.6;">${t.legend}</div>
+        ${reviewBlock(e.qs, e.answers, e.marked)}
+      </div>
+    </div>
+    </div>
+    <div class="footer justified">
+      <span></span>
+      <button class="pbtn" onclick="switchLangInline()">${IC.lang} ${lang==='en'?'English':'Italiano'}</button>
+    </div>`;
+}
+
+/* ================= TRAINING MODE ================= */
+function startTrain(cat){
+  const idx = POOL.map((p,i)=>i).filter(i=>!cat || POOL[i].c===cat);
+  train = { cat, qs: shuffled(idx).map(p=>({p, perm: shuffled([0,1,2])})), answers: [], cur: 0 };
+  train.answers = Array(train.qs.length).fill(null);
+  view='train'; render(); window.scrollTo(0,0);
+}
+function trainChoose(orig){
+  if(train.answers[train.cur]!==null) return;
+  train.answers[train.cur]=orig; train.justAnswered=true; render(); train.justAnswered=false;
+}
+function trainNav(d){ train.cur=Math.min(train.qs.length-1, Math.max(0, train.cur+d)); render(); window.scrollTo(0,0); }
+function renderTrain(){
+  const t=T(), e=train, qq=e.qs[e.cur], P=POOL[qq.p], q=P[lang], N=e.qs.length;
+  const done=e.answers.filter(a=>a!==null).length, ok=e.answers.filter(a=>a===0).length;
+  const answered=e.answers[e.cur]!==null;
+  $('app').innerHTML = `
+    <div class="header justified">
+      <div><button class="pbtn" onclick="view='start';render()">${IC.close} <span>${t.exit}</span></button></div>
+      <div class="hstack">
+        <div class="row" style="color:var(--night-rider)"><b>${t.training}:</b>&nbsp;${esc(e.cat?catName(e.cat):t.allTopics)}</div>
+        <div class="row questionAnswered">${IC.check}<span>${ok} / ${done} ${t.correctLbl} · ${N} ${t.questionsLbl}</span></div>
+      </div>
+    </div>
+    <div class="scrollpanel">
+      <div class="examcontainer">
+        <div class="self-center"><button class="navbtn back" onclick="trainNav(-1)" ${e.cur===0?'disabled':''}>${IC.chevL}</button></div>
+        <div class="exampage"><div class="content">
+          <div class="title">
+            <span class="titleText">${t.question} ${e.cur+1} ${t.of} ${N}</span>
+            <div class="flexspacer"></div>
+            <span class="artref">${esc(catName(P.c))} · ${esc(P.art)}</span>
+          </div>
+          <div class="qcols">
+            <div class="contentLeft"><span class="questionTitle">${esc(q.q)}</span><span class="qhint">${t.oneAnswer}</span></div>
+            <div class="contentRight">
+              ${qq.perm.map(orig=>{
+                const sel=e.answers[e.cur]===orig;
+                if(!answered) return answerRowPlain(q.a[orig], sel, `trainChoose(${orig})`);
+                return answerRowGraded(q.a[orig], orig===0, sel, e.justAnswered);
+              }).join('')}
+              ${answered && P.x ? `<div class="explain"><b>${esc(P.art)}</b> — ${esc(P.x[lang])}</div>` : ''}
+              ${answered ? `<div style="margin-top:14px;text-align:right"><button class="pbtn invert" onclick="${e.cur===N-1?'finishTrain()':'trainNav(1)'}">${e.cur===N-1?t.finishTraining:t.next} ${IC.chevR}</button></div>` : ''}
+            </div>
+          </div>
+        </div></div>
+        <div class="self-center"><button class="navbtn forward" onclick="trainNav(1)" ${e.cur===N-1?'disabled':''}>${IC.chevR}</button></div>
+      </div>
+    </div>
+    <div class="footer justified">
+      <button class="pbtn" onclick="finishTrain()">${IC.check} ${t.finishTraining}</button>
+      <button class="pbtn" onclick="switchLangInline()">${IC.lang} ${lang==='en'?'English':'Italiano'}</button>
+    </div>`;
+}
+function finishTrain(){ view='trainresult'; render(); window.scrollTo(0,0); }
+function renderTrainResult(){
+  const t=T(), e=train;
+  const done=e.qs.map((qq,i)=>({qq,i})).filter(x=>e.answers[x.i]!==null);
+  const ok=done.filter(x=>e.answers[x.i]===0).length;
+  const wrong=done.filter(x=>e.answers[x.i]!==0);
+  $('app').innerHTML = `
+    <div class="header"></div>
+    ${loginInfoBlock()}
+    <div class="scrollpanel scrollpanel-noheader" style="top:80px;">
+    <div class="resultpage">
+      <h1>${t.trainingResult}</h1>
+      <div class="verdict ${wrong.length===0?'pass':''}">${ok} / ${done.length}</div>
+      <div class="examtable"><table>
+        <tr><td>${t.correctCount}</td><td>${ok}</td></tr>
+        <tr><td>${t.wrongCount}</td><td>${wrong.length}</td></tr>
+        <tr><td>${t.byTopic}</td><td>${topicTable(done.map(x=>({p:x.qq.p, ok:e.answers[x.i]===0})))}</td></tr>
+      </table></div>
+      <button class="pbtn invert" style="margin-top:26px;" onclick="startTrain(${e.cat?`'${e.cat}'`:'null'})">${t.restart}</button>
+      <button class="pbtn" style="margin-top:26px;" onclick="view='start';render()">${t.exit}</button>
+      ${wrong.length?`<div class="reviewwrap"><h2>${t.wrongCount}</h2>${reviewBlock(wrong.map(x=>x.qq), wrong.map(x=>e.answers[x.i]), null)}</div>`:''}
+    </div>
+    </div>
+    <div class="footer justified">
+      <span></span>
+      <button class="pbtn" onclick="switchLangInline()">${IC.lang} ${lang==='en'?'English':'Italiano'}</button>
+    </div>`;
+}
+
+/* ================= RENDER ROOT ================= */
+function render(){
+  if(view==='lang') renderLang();
+  else if(view==='start') renderStart();
+  else if(view==='exam') renderExam();
+  else if(view==='overview') renderOverview();
+  else if(view==='result') renderResult();
+  else if(view==='train') renderTrain();
+  else if(view==='trainresult') renderTrainResult();
+}
+if(lang) resumeExam();
+render();
+</script>
+</body>
+</html>
