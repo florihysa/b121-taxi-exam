@@ -20,7 +20,7 @@ html=html.replace("notAnswered:'Nessuna risposta',\n    ok:'OK'", ()=>{n++;retur
 if(n!==2) throw new Error('UI patch failed');
 html=html.replace(/disclaimer:'This is an independent practice exam[^\n]*/, "disclaimer:'Independent practice exam for the B121 / BPT additional theory exam (OLR 2). These are not the official asa questions. The correct answer is shown right after each answer. Exam format (30 questions, 3 options, max. 3 mistakes, 45 minutes) matches the official exam.',");
 html=html.replace(/disclaimer:'Questo è un esame di prova indipendente[^\n]*/, "disclaimer:'Esame di prova indipendente per l\\'esame di teoria complementare B121 / TPP (OLR 2). Non sono le domande ufficiali asa. La risposta corretta appare subito dopo ogni risposta. Il formato (30 domande, 3 risposte, max. 3 errori, 45 minuti) corrisponde all\\'esame ufficiale.',");
-const parts=['pool_1.js','pool_2.js','pool_3.js','pool_4.js'].map(f=>fs.readFileSync(__dirname+'/'+f,'utf8')).join('\n');
+const parts=['pool.js'].map(f=>fs.readFileSync(__dirname+'/'+f,'utf8')).join('\n');
 html+=`/* ================= QUESTION POOL — correct answer always index 0, shuffled at runtime.
    c = topic (T Termini, P Portata, O Orari, C Controllo, V Varie); art = legal basis (OLR 2 unless stated).
    Keyed against OLR 2 (RS 822.222, state 01.03.2025), OLR 1 via Art. 16a, ONC, OETV. ================= */
