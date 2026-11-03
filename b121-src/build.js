@@ -4,6 +4,9 @@ let html=ref.slice(0, ref.indexOf('/* ================= QUESTION POOL'));
 html=html.replace('<title>CUT-Exam · B121 / BPT</title>','<title>CUT-Exam · B121 / BPT — OLR 2</title>');
 html=html.replace('</style>',`  .artref{font-size:12px; color:var(--dark-grey); margin-left:8px; font-weight:400; white-space:nowrap;}
   .verdict:not(.pass):not(.fail){color:var(--mariner);}
+  .answer{padding:12px 16px; margin:4px 0;}
+  .contentLeft{padding-top:14px;} .contentRight{padding-top:10px;}
+  .explain{margin-top:10px;}
 </style>`);
 const enExtra=`notAnswered:'Not answered',
     ok:'OK', cat:{T:'Terms',P:'Scope',O:'Working, driving & rest time',C:'Checks',V:'Misc.'}, exit:'Back to start',

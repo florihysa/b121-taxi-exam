@@ -228,20 +228,22 @@ function renderExam(){
     <div class="backdrop" id="dlgback"><div class="pdialog" id="dlg"></div></div>`;
 }
 
+let keepScroll=false;
 function choose(orig){
   if(exam.answers[exam.cur]!==null) return;   // locked after the first answer; the correct answer is shown immediately
   exam.answers[exam.cur] = orig;
   exam.justAnswered = true;
   saveExam();
-  render();
+  keepScroll=true; render();
   exam.justAnswered = false;
+  const sel=document.querySelector('.contentRight .answer.selected'); if(sel) sel.scrollIntoView({block:'nearest'});
 }
 function nav(d){
   exam.cur=Math.min(EXAM_N-1,Math.max(0,exam.cur+d));
   saveExam();
   render();
 }
-function toggleMark(){ exam.marked[exam.cur]=!exam.marked[exam.cur]; saveExam(); render(); }
+function toggleMark(){ exam.marked[exam.cur]=!exam.marked[exam.cur]; saveExam(); keepScroll=true; render(); }
 function gotoQ(i){ exam.cur=i; view='exam'; saveExam(); render(); }
 function switchLangInline(){ lang = lang==='en'?'it':'en'; localStorage.setItem('b121lang2',lang); render(); }
 
@@ -445,6 +447,7 @@ function renderTrainResult(){
 
 /* ================= RENDER ROOT ================= */
 function render(){
+  const sp=document.querySelector('.scrollpanel'); const st=(keepScroll&&sp)?sp.scrollTop:0; keepScroll=false;
   if(view==='lang') renderLang();
   else if(view==='start') renderStart();
   else if(view==='exam') renderExam();
@@ -452,6 +455,7 @@ function render(){
   else if(view==='result') renderResult();
   else if(view==='train') renderTrain();
   else if(view==='trainresult') renderTrainResult();
+  const sp2=document.querySelector('.scrollpanel'); if(sp2) sp2.scrollTop=st;
 }
 if(lang) resumeExam();
 render();
