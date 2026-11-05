@@ -5,7 +5,7 @@ const EXAM_MIN = 45;        // minutes
 const MAX_MISTAKES = 3;     // max errors allowed
 const CRITICAL_S = 5*60;    // timer turns red
 const CATS = ['T','P','O','C','V'];
-const CAT_MIN = {T:3,P:3,O:7,C:9,V:1};
+const CAT_MIN = {T:3,P:3,O:7,C:9,V:0};
 const VERSION = 'v5 · OLR 2 stato 01.03.2025';
 
 /* ================= STATE ================= */
