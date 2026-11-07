@@ -2,6 +2,7 @@ const fs=require('fs');
 let ref=fs.readFileSync(__dirname+'/reference-ui.html','utf8');
 let html=ref.slice(0, ref.indexOf('/* ================= QUESTION POOL'));
 html=html.replace('<title>CUT-Exam · B121 / BPT</title>','<title>CUT-Exam · B121 / BPT — OLR 2</title>');
+html=html.replace("catValue:'Category B121 (BPT) — ARV2 / SR 822.222'","catValue:'Category B121 (BPT) — OLR 2 / SR 822.222'");
 html=html.replace('</style>',`  .artref{font-size:12px; color:var(--dark-grey); margin-left:8px; font-weight:400; white-space:nowrap;}
   .verdict:not(.pass):not(.fail){color:var(--mariner);}
   .answer{padding:12px 16px; margin:4px 0;}
