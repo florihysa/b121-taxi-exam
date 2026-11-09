@@ -6,7 +6,8 @@ const MAX_MISTAKES = 3;     // max errors allowed
 const CRITICAL_S = 5*60;    // timer turns red
 const CATS = ['T','P','O','C','V'];
 const CAT_MIN = {T:3,P:3,O:7,C:9,V:0};
-const VERSION = 'v13 · 09.11.2026 · OLR 2 stato 01.03.2025';
+const CASE_MIN = 5; // at least this many concrete-case questions (entries with vars) per exam
+const VERSION = 'v14 · 09.11.2026 · OLR 2 stato 01.03.2025';
 
 /* ================= STATE ================= */
 let lang = localStorage.getItem('b121lang2') || null;
@@ -17,6 +18,9 @@ const instantFb = true;   // correct answer is always shown right after answerin
 const $ = id=>document.getElementById(id);
 const esc = s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 function shuffled(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+// Case questions: a pool entry may carry several concrete cases (vars); one is drawn per exam and stored with the question.
+function QV(qq){ const P=POOL[qq.p]; return (P.vars && Number.isInteger(qq.v) && P.vars[qq.v]) ? P.vars[qq.v] : P; }
+function pickVar(p){ const P=POOL[p]; return P.vars ? Math.floor(Math.random()*P.vars.length) : null; }
 const T = ()=>UI[lang||'en'];
 const catName = c => (T().cat[c]||(c==='V'?'Varie':c));
 
@@ -78,13 +82,14 @@ function renderStart(){
 /* ===== exam persistence ===== */
 function saveExam(){
   if(!exam) return;
-  try{ localStorage.setItem('b121exam', JSON.stringify({qs:exam.qs, answers:exam.answers, marked:exam.marked, cur:exam.cur, total:exam.total, left:exam.left, fb:exam.fb, savedAt:Date.now()})); }catch(e){}
+  try{ localStorage.setItem('b121exam', JSON.stringify({qs:exam.qs, answers:exam.answers, marked:exam.marked, cur:exam.cur, total:exam.total, left:exam.left, fb:exam.fb, ver:VERSION, savedAt:Date.now()})); }catch(e){}
 }
 function clearSaved(){ try{ localStorage.removeItem('b121exam'); }catch(e){} }
 function resumeExam(){
   try{
     const s=JSON.parse(localStorage.getItem('b121exam')||'null');
     if(!s || !Array.isArray(s.qs) || s.qs.length!==EXAM_N || !Array.isArray(s.answers)) return false;
+    if(s.ver!==VERSION){ clearSaved(); return false; }   // the pool changed: an old saved exam would point at other questions
     if(s.qs.some(q=>!POOL[q.p] || !Array.isArray(q.perm) || q.perm.length!==3)) { clearSaved(); return false; }
     const elapsed=Math.floor((Date.now()-(s.savedAt||Date.now()))/1000);
     exam={qs:s.qs, answers:s.answers, marked:s.marked, cur:s.cur||0, total:s.total, left:Math.max(0, s.left-elapsed), fb:true, timerId:null};
@@ -104,6 +109,10 @@ function pickExam(){
   while(sum>EXAM_N){ const c=cats.reduce((a,b)=>counts[a]>=counts[b]?a:b); counts[c]--; sum--; }
   while(sum<EXAM_N){ const c=cats.filter(k=>counts[k]<byCat[k].length).reduce((a,b)=>counts[a]/byCat[a].length<=counts[b]/byCat[b].length?a:b); counts[c]++; sum++; }
   let picks=[]; cats.forEach(c=>{ picks=picks.concat(shuffled(byCat[c]).slice(0,counts[c])); });
+  // enough concrete-case questions: swap within the same topic so the topic mix stays unchanged
+  let nCase=picks.filter(i=>POOL[i].vars).length;
+  const spare=shuffled(POOL.map((p,i)=>i).filter(i=>POOL[i].vars && !picks.includes(i)));
+  for(const sp of spare){ if(nCase>=CASE_MIN) break; const k=picks.findIndex(i=>!POOL[i].vars && POOL[i].c===POOL[sp].c); if(k>=0){ picks[k]=sp; nCase++; } }
   return shuffled(picks);
 }
 function startExam(){
@@ -111,7 +120,7 @@ function startExam(){
   if(exam && exam.timerId) clearInterval(exam.timerId);
   const picks = pickExam();
   exam = {
-    qs: picks.map(p=>({p, perm: shuffled([0,1,2])})),
+    qs: picks.map(p=>({p, perm: shuffled([0,1,2]), v: pickVar(p)})),
     answers: Array(EXAM_N).fill(null),
     marked: Array(EXAM_N).fill(false),
     cur: 0,
@@ -161,7 +170,7 @@ function answerRowGraded(text, isC, sel, anim){
 }
 
 function renderExam(){
-  const t=T(), e=exam, qq=e.qs[e.cur], P=POOL[qq.p], q=P[lang];
+  const t=T(), e=exam, qq=e.qs[e.cur], P=POOL[qq.p], V=QV(qq), q=V[lang];
   const answeredCount = e.answers.filter(a=>a!==null).length;
   const markedCount = e.marked.filter(Boolean).length;
   const answered = e.answers[e.cur]!==null;
@@ -209,7 +218,7 @@ function renderExam(){
                   if(!graded) return answerRowPlain(q.a[orig], sel, `choose(${orig})`);
                   return answerRowGraded(q.a[orig], orig===0, sel, e.justAnswered);
                 }).join('')}
-                ${graded && P.x ? `<div class="explain"><b>${esc(P.art)}</b> — ${esc(P.x[lang])}</div>` : ''}
+                ${graded && (V.x||P.x) ? `<div class="explain"><b>${esc(P.art)}</b> — ${esc((V.x||P.x)[lang])}</div>` : ''}
               </div>
             </div>
           </div>
@@ -318,11 +327,11 @@ function topicTable(items){ // items: [{p, ok}]
 function reviewBlock(qs, answers, marked){
   const t=T();
   return qs.map((qq,i)=>{
-    const P=POOL[qq.p], q=P[lang], user=answers[i];
+    const P=POOL[qq.p], V=QV(qq), q=V[lang], user=answers[i];
     return `<div>
       <div class="rquestion"><span class="qnum">${i+1}.</span> ${esc(q.q)} <span class="artref">${esc(P.art)}</span> ${marked&&marked[i]?`<span class="rmarkedflag">⚑</span>`:''} ${user===null||user===undefined?`<span style="color:var(--error-color); font-weight:400; font-size:13px;">— ${t.notAnswered}</span>`:''}</div>
       ${qq.perm.map(orig=>answerRowGraded(q.a[orig], orig===0, user===orig, false)).join('')}
-      ${P.x?`<div class="explain">${esc(P.x[lang])}</div>`:''}
+      ${(V.x||P.x)?`<div class="explain">${esc((V.x||P.x)[lang])}</div>`:''}
     </div>`;
   }).join('');
 }
