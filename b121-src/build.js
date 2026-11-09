@@ -3,6 +3,14 @@ let ref=fs.readFileSync(__dirname+'/reference-ui.html','utf8');
 let html=ref.slice(0, ref.indexOf('/* ================= QUESTION POOL'));
 html=html.replace('<title>CUT-Exam · B121 / BPT</title>','<title>CUT-Exam · B121 / BPT — OLR 2</title>');
 html=html.replace("catValue:'Category B121 (BPT) — ARV2 / SR 822.222'","catValue:'Category B121 (BPT) — OLR 2 / SR 822.222'");
+// English interface wording
+html=html.replace("startTitle:'Exam start'","startTitle:'Start of the exam'");
+html=html.replace("bookmark:'Bookmark Question'","bookmark:'Bookmark question'");
+html=html.replace("confirmAll:'Your exam will now terminate. You can not undo this step.'","confirmAll:'Your exam will now end. This step cannot be undone.'");
+html=html.replace("This step can not be undone.'","This step cannot be undone.'");
+html=html.replace("closeExam:'Close exam', closeNow:'Close now', doNotClose:'Do not close'","closeExam:'Finish exam', closeNow:'Finish now', doNotClose:'Do not finish'");
+html=html.replace("['Close exam','This function ends the exam. Make sure that all questions are answered.']","['Finish exam','This ends the exam. Make sure you have answered all the questions.']");
+html=html.replace("['Questions overview','Here you get an overall view of your exam.']","['Questions overview','Here you can see all the questions of your exam at a glance.']");
 html=html.replace('</style>',`  .artref{font-size:12px; color:var(--dark-grey); margin-left:8px; font-weight:400; white-space:nowrap;}
   .verdict:not(.pass):not(.fail){color:var(--mariner);}
   .answer{padding:12px 16px; margin:4px 0;}
