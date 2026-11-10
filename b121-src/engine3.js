@@ -7,7 +7,7 @@ const CRITICAL_S = 5*60;    // timer turns red
 const CATS = ['T','P','O','C','V'];
 const CAT_MIN = {T:3,P:3,O:7,C:9,V:0};
 const CASE_MIN = 5; // at least this many concrete-case questions (entries with vars) per exam
-const VERSION = 'v18 · 10.11.2026 · OLR 2 stato 01.03.2025';
+const VERSION = 'v19 · 10.11.2026 · OLR 2 stato 01.03.2025';
 
 /* ================= STATE ================= */
 let lang = localStorage.getItem('b121lang2') || null;
@@ -33,6 +33,22 @@ const T = ()=>UI[lang||'en'];
 const catName = c => (T().cat[c]||(c==='V'?'Varie':c));
 
 /* ================= VIEWS ================= */
+/* ===== light / dark theme ===== */
+let theme = 'light';
+try{ if(localStorage.getItem('b121theme')==='dark') theme='dark'; }catch(e){}
+function applyTheme(){ document.documentElement.setAttribute('data-theme', theme); }
+function toggleTheme(){
+  theme = theme==='dark' ? 'light' : 'dark';
+  try{ localStorage.setItem('b121theme', theme); }catch(e){}
+  applyTheme(); keepScroll=true; render();
+}
+const TH_MOON='<svg viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z"/></svg>';
+const TH_SUN='<svg viewBox="0 0 24 24"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0 .39-.39.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/></svg>';
+function themeBtn(){
+  const dark = theme==='dark';
+  const label = lang==='it' ? (dark?'Modalità chiara':'Modalità scura') : (dark?'Light mode':'Dark mode');
+  return `<button class="pbtn themebtn" onclick="toggleTheme()" title="${label}" aria-label="${label}" aria-pressed="${dark}">${dark?TH_SUN:TH_MOON}</button>`;
+}
 function loginInfoBlock(){
   const t=T();
   return `<table class="logininfo"><tr><td>${t.loggedIn}</td><td>Demo</td></tr>
@@ -43,6 +59,7 @@ function loginInfoBlock(){
 function renderLang(){
   $('app').innerHTML = `
     <div class="header"></div>
+    <div class="themefloat">${themeBtn()}</div>
     ${lang?loginInfoBlock():`<table class="logininfo"><tr><td>Logged in:</td><td>Demo</td></tr><tr><td>Category:</td><td>B121</td></tr><tr><td>Device:</td><td>Web</td></tr></table>`}
     <div class="langpage">
       <div style="margin-top:40px; text-align:center; font-size:13px; line-height:1.5;">
@@ -83,7 +100,7 @@ function renderStart(){
     </div>
     <div class="footer justified">
       <span style='font-size:12px;color:var(--dark-grey)'>${lang==='en'?VERSION.replace('stato','as of'):VERSION}</span>
-      <button class="pbtn" onclick="view='lang';render()">${IC.lang} ${lang==='en'?'English':'Italiano'}</button>
+      <span class="fgroup">${themeBtn()}<button class="pbtn" onclick="view='lang';render()">${IC.lang} ${lang==='en'?'English':'Italiano'}</button></span>
     </div>`;
 }
 
@@ -240,7 +257,7 @@ function renderExam(){
     <div class="footer justified">
       <button class="pbtn" onclick="showHelp()">${IC.help} ${t.help}</button>
       <button class="pbtn" onclick="askFinish()">${IC.check} ${t.closeExam}</button>
-      <button class="pbtn" onclick="switchLangInline()">${IC.lang} ${lang==='en'?'English':'Italiano'}</button>
+      <span class="fgroup">${themeBtn()}<button class="pbtn" onclick="switchLangInline()">${IC.lang} ${lang==='en'?'English':'Italiano'}</button></span>
     </div>
     <div class="backdrop" id="dlgback"><div class="pdialog" id="dlg"></div></div>`;
 }
@@ -292,7 +309,7 @@ function renderOverview(){
     <div class="footer justified">
       <button class="pbtn" onclick="showHelp()">${IC.help} ${t.help}</button>
       <button class="pbtn" onclick="askFinish()">${IC.check} ${t.closeExam}</button>
-      <span></span>
+      ${themeBtn()}
     </div>
     <div class="backdrop" id="dlgback"><div class="pdialog" id="dlg"></div></div>`;
 }
@@ -375,7 +392,7 @@ function renderResult(){
     </div>
     <div class="footer justified">
       <span></span>
-      <button class="pbtn" onclick="switchLangInline()">${IC.lang} ${lang==='en'?'English':'Italiano'}</button>
+      <span class="fgroup">${themeBtn()}<button class="pbtn" onclick="switchLangInline()">${IC.lang} ${lang==='en'?'English':'Italiano'}</button></span>
     </div>`;
 }
 
@@ -430,7 +447,7 @@ function renderTrain(){
     </div>
     <div class="footer justified">
       <button class="pbtn" onclick="finishTrain()">${IC.check} ${t.finishTraining}</button>
-      <button class="pbtn" onclick="switchLangInline()">${IC.lang} ${lang==='en'?'English':'Italiano'}</button>
+      <span class="fgroup">${themeBtn()}<button class="pbtn" onclick="switchLangInline()">${IC.lang} ${lang==='en'?'English':'Italiano'}</button></span>
     </div>`;
 }
 function finishTrain(){ view='trainresult'; render(); window.scrollTo(0,0); }
@@ -458,7 +475,7 @@ function renderTrainResult(){
     </div>
     <div class="footer justified">
       <span></span>
-      <button class="pbtn" onclick="switchLangInline()">${IC.lang} ${lang==='en'?'English':'Italiano'}</button>
+      <span class="fgroup">${themeBtn()}<button class="pbtn" onclick="switchLangInline()">${IC.lang} ${lang==='en'?'English':'Italiano'}</button></span>
     </div>`;
 }
 
@@ -474,6 +491,7 @@ function render(){
   else if(view==='trainresult') renderTrainResult();
   const sp2=document.querySelector('.scrollpanel'); if(sp2) sp2.scrollTop=st;
 }
+applyTheme();
 if(lang) resumeExam();
 render();
 </script>
