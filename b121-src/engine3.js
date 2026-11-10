@@ -7,7 +7,7 @@ const CRITICAL_S = 5*60;    // timer turns red
 const CATS = ['T','P','O','C','V'];
 const CAT_MIN = {T:3,P:3,O:7,C:9,V:0};
 const CASE_MIN = 5; // at least this many concrete-case questions (entries with vars) per exam
-const VERSION = 'v19 · 10.11.2026 · OLR 2 stato 01.03.2025';
+const VERSION = 'v20 · 10.11.2026 · OLR 2 stato 01.03.2025';
 
 /* ================= STATE ================= */
 let lang = localStorage.getItem('b121lang2') || null;
@@ -243,7 +243,7 @@ function renderExam(){
                   if(!graded) return answerRowPlain(q.a[orig], sel, `choose(${orig})`);
                   return answerRowGraded(q.a[orig], orig===0, sel, e.justAnswered);
                 }).join('')}
-                ${graded && (V.x||P.x) ? `<div class="explain"><b>${esc(artL(P.art))}</b> — ${esc((V.x||P.x)[lang])}</div>` : ''}
+                ${graded && (V.x||P.x) ? `<div class="explain"><ul><li>${esc((V.x||P.x)[lang])}</li></ul></div>` : ''}
               </div>
             </div>
           </div>
@@ -356,7 +356,7 @@ function reviewBlock(qs, answers, marked){
     return `<div>
       <div class="rquestion"><span class="qnum">${i+1}.</span> ${esc(q.q)} <span class="artref">${esc(artL(P.art))}</span> ${marked&&marked[i]?`<span class="rmarkedflag">⚑</span>`:''} ${user===null||user===undefined?`<span style="color:var(--error-color); font-weight:400; font-size:13px;">— ${t.notAnswered}</span>`:''}</div>
       ${qq.perm.map(orig=>answerRowGraded(q.a[orig], orig===0, user===orig, false)).join('')}
-      ${(V.x||P.x)?`<div class="explain">${esc((V.x||P.x)[lang])}</div>`:''}
+      ${(V.x||P.x)?`<div class="explain"><ul><li>${esc((V.x||P.x)[lang])}</li></ul></div>`:''}
     </div>`;
   }).join('');
 }
@@ -437,7 +437,7 @@ function renderTrain(){
                 if(!answered) return answerRowPlain(q.a[orig], sel, `trainChoose(${orig})`);
                 return answerRowGraded(q.a[orig], orig===0, sel, e.justAnswered);
               }).join('')}
-              ${answered && P.x ? `<div class="explain"><b>${esc(artL(P.art))}</b> — ${esc(P.x[lang])}</div>` : ''}
+              ${answered && P.x ? `<div class="explain"><ul><li>${esc(P.x[lang])}</li></ul></div>` : ''}
               ${answered ? `<div style="margin-top:14px;text-align:right"><button class="pbtn invert" onclick="${e.cur===N-1?'finishTrain()':'trainNav(1)'}">${e.cur===N-1?t.finishTraining:t.next} ${IC.chevR}</button></div>` : ''}
             </div>
           </div>
