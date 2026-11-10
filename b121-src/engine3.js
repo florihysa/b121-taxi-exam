@@ -7,7 +7,7 @@ const CRITICAL_S = 5*60;    // timer turns red
 const CATS = ['T','P','O','C','V'];
 const CAT_MIN = {T:3,P:3,O:7,C:9,V:0};
 const CASE_MIN = 5; // at least this many concrete-case questions (entries with vars) per exam
-const VERSION = 'v20 · 10.11.2026 · OLR 2 stato 01.03.2025';
+const VERSION = 'v21 · 10.11.2026 · OLR 2 stato 01.03.2025';
 
 /* ================= STATE ================= */
 let lang = localStorage.getItem('b121lang2') || null;
@@ -263,6 +263,15 @@ function renderExam(){
 }
 
 let keepScroll=false;
+// On small screens the explanation can end up below the visible area: scroll just enough to show the whole box
+// (never so far that its first line leaves the screen).
+function showExplain(){
+  const sp=document.querySelector('.scrollpanel'), ex=document.querySelector('.contentRight .explain');
+  if(!sp||!ex) return;
+  const pr=sp.getBoundingClientRect(), er=ex.getBoundingClientRect();
+  const over=er.bottom+12-pr.bottom;
+  if(over>0) sp.scrollTop+=Math.max(0, Math.min(over, er.top-pr.top-8));
+}
 function choose(orig){
   if(exam.answers[exam.cur]!==null) return;   // locked after the first answer; the correct answer is shown immediately
   exam.answers[exam.cur] = orig;
@@ -270,7 +279,7 @@ function choose(orig){
   saveExam();
   keepScroll=true; render();
   exam.justAnswered = false;
-  const sel=document.querySelector('.contentRight .answer.selected'); if(sel) sel.scrollIntoView({block:'nearest'});
+  showExplain();
 }
 function nav(d){
   exam.cur=Math.min(EXAM_N-1,Math.max(0,exam.cur+d));
@@ -490,6 +499,7 @@ function render(){
   else if(view==='train') renderTrain();
   else if(view==='trainresult') renderTrainResult();
   const sp2=document.querySelector('.scrollpanel'); if(sp2) sp2.scrollTop=st;
+  if(view==='exam'||view==='train') showExplain();   // an answered question always opens with its explanation in view
 }
 applyTheme();
 if(lang) resumeExam();

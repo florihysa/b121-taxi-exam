@@ -18,6 +18,7 @@ html=html.replace('</style>',`  .artref{font-size:12px; color:var(--dark-grey); 
   .answer{padding:12px 16px; margin:4px 0;}
   .contentLeft{padding-top:14px;} .contentRight{padding-top:10px;}
   .explain{margin-top:10px;}
+  .contentRight .explain{margin-bottom:16px;}
   .explain ul{margin:0; padding:0 0 0 18px; list-style:disc;}
   .explain li{margin:0; padding:0;}
   .explain li::marker{color:var(--mariner);}
