@@ -7,7 +7,7 @@ const CRITICAL_S = 5*60;    // timer turns red
 const CATS = ['T','P','O','C','V'];
 const CAT_MIN = {T:3,P:3,O:7,C:9,V:0};
 const CASE_MIN = 5; // at least this many concrete-case questions (entries with vars) per exam
-const VERSION = 'v28 · 13.11.2026 · OLR 2 stato 01.03.2025';
+const VERSION = 'v29 · 13.11.2026 · OLR 2 stato 01.03.2025';
 
 /* ================= STATE ================= */
 let lang = localStorage.getItem('b121lang2') || null;
@@ -19,6 +19,8 @@ const $ = id=>document.getElementById(id);
 const esc = s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 function shuffled(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 // Case questions: a pool entry may carry several concrete cases (vars); one is drawn per exam and stored with the question.
+// Explanation box: first bullet = why the answer is right; optional second bullet = memory tip (field h).
+function explainHTML(P,V){ const x=(V&&V.x)||P.x; if(!x) return ''; const h=(V&&V.h)||P.h; return `<div class="explain"><ul><li>${esc(x[lang])}</li>${h?`<li class="hint">${esc(h[lang])}</li>`:''}</ul></div>`; }
 function QV(qq){ const P=POOL[qq.p]; return (P.vars && Number.isInteger(qq.v) && P.vars[qq.v]) ? P.vars[qq.v] : P; }
 // Legal-basis label: the pool stores it in Italian; show English abbreviations in the English version.
 function artL(a){
@@ -243,7 +245,7 @@ function renderExam(){
                   if(!graded) return answerRowPlain(q.a[orig], sel, `choose(${orig})`);
                   return answerRowGraded(q.a[orig], orig===0, sel, e.justAnswered);
                 }).join('')}
-                ${graded && (V.x||P.x) ? `<div class="explain"><ul><li>${esc((V.x||P.x)[lang])}</li></ul></div>` : ''}
+                ${graded ? explainHTML(P,V) : ''}
               </div>
             </div>
           </div>
@@ -365,7 +367,7 @@ function reviewBlock(qs, answers, marked){
     return `<div>
       <div class="rquestion"><span class="qnum">${i+1}.</span> ${esc(q.q)} <span class="artref">${esc(artL(P.art))}</span> ${marked&&marked[i]?`<span class="rmarkedflag">⚑</span>`:''} ${user===null||user===undefined?`<span style="color:var(--error-color); font-weight:400; font-size:13px;">— ${t.notAnswered}</span>`:''}</div>
       ${qq.perm.map(orig=>answerRowGraded(q.a[orig], orig===0, user===orig, false)).join('')}
-      ${(V.x||P.x)?`<div class="explain"><ul><li>${esc((V.x||P.x)[lang])}</li></ul></div>`:''}
+      ${explainHTML(P,V)}
     </div>`;
   }).join('');
 }
@@ -446,7 +448,7 @@ function renderTrain(){
                 if(!answered) return answerRowPlain(q.a[orig], sel, `trainChoose(${orig})`);
                 return answerRowGraded(q.a[orig], orig===0, sel, e.justAnswered);
               }).join('')}
-              ${answered && P.x ? `<div class="explain"><ul><li>${esc(P.x[lang])}</li></ul></div>` : ''}
+              ${answered ? explainHTML(P,null) : ''}
               ${answered ? `<div style="margin-top:14px;text-align:right"><button class="pbtn invert" onclick="${e.cur===N-1?'finishTrain()':'trainNav(1)'}">${e.cur===N-1?t.finishTraining:t.next} ${IC.chevR}</button></div>` : ''}
             </div>
           </div>

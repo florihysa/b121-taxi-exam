@@ -21,6 +21,7 @@ html=html.replace('</style>',`  .artref{font-size:12px; color:var(--dark-grey); 
   .contentRight .explain{margin-bottom:16px;}
   .explain ul{margin:0; padding:0 0 0 18px; list-style:disc;}
   .explain li{margin:0; padding:0;}
+  .explain li.hint{margin-top:8px; font-weight:600;}
   .explain li::marker{color:var(--mariner);}
   /* ===== theme toggle ===== */
   .fgroup{display:inline-flex; gap:8px; align-items:center;}
