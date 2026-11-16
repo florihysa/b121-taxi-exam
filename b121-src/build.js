@@ -23,6 +23,12 @@ html=html.replace('</style>',`  .artref{font-size:12px; color:var(--dark-grey); 
   .explain li{margin:0; padding:0;}
   .explain li.hint{margin-top:8px; font-weight:600;}
   .explain li::marker{color:var(--mariner);}
+  /* ===== start page options ===== */
+  .optblock{max-width:760px; margin:6px auto 0; text-align:left; font-size:14px;}
+  .optrow{display:flex; flex-wrap:wrap; align-items:center; gap:8px 14px; margin-top:14px;}
+  .optlabel{font-weight:700;}
+  .optbtns{display:inline-flex; flex-wrap:wrap; gap:8px;}
+  .pbtn.optbtn{padding:8px 12px; min-width:0;}
   /* ===== theme toggle ===== */
   .fgroup{display:inline-flex; gap:8px; align-items:center;}
   .pbtn.themebtn{min-width:0; padding:10px;}
@@ -58,16 +64,18 @@ html=html.replace('</style>',`  .artref{font-size:12px; color:var(--dark-grey); 
 </style>`);
 const enExtra=`notAnswered:'Not answered',
     ok:'OK', cat:{T:'Terms',P:'Scope',O:'Working, driving & rest time',C:'Checks',V:'Misc.'}, exit:'Back to start',
-    training:'',trainingDesc:'',allTopics:'',instantFeedback:'',fbOn:'',realMode:'',next:'Next',finishTraining:'',trainingResult:'',correctCount:'',wrongCount:'',byTopic:'',correctLbl:'',questionsLbl:'',restart:'',poolInfo:n=>''`;
+    training:'',trainingDesc:'',allTopics:'',instantFeedback:'',fbOn:'',realMode:'',next:'Next',finishTraining:'',trainingResult:'',correctCount:'',wrongCount:'',byTopic:'',correctLbl:'',questionsLbl:'',restart:'',poolInfo:n=>'',
+    optAnswer:'Correct answer:', fbNow:'Right after each answer', fbOff:'Do not show mistakes', nAll:n=>'All ('+n+')', minutesN:n=>n+' minutes', showReview:'Show review'`;
 const itExtra=`notAnswered:'Nessuna risposta',
     ok:'OK', cat:{T:'Termini',P:'Portata',O:'Orari',C:'Controllo',V:'Varie'}, exit:'Torna all\\'inizio',
-    training:'',trainingDesc:'',allTopics:'',instantFeedback:'',fbOn:'',realMode:'',next:'Avanti',finishTraining:'',trainingResult:'',correctCount:'',wrongCount:'',byTopic:'',correctLbl:'',questionsLbl:'',restart:'',poolInfo:n=>''`;
+    training:'',trainingDesc:'',allTopics:'',instantFeedback:'',fbOn:'',realMode:'',next:'Avanti',finishTraining:'',trainingResult:'',correctCount:'',wrongCount:'',byTopic:'',correctLbl:'',questionsLbl:'',restart:'',poolInfo:n=>'',
+    optAnswer:'Risposta corretta:', fbNow:'Subito dopo ogni risposta', fbOff:'Non mostrare gli errori', nAll:n=>'Tutte ('+n+')', minutesN:n=>n+' minuti', showReview:'Mostra la revisione'`;
 let n=0;
 html=html.replace("notAnswered:'Not answered',\n    ok:'OK'", ()=>{n++;return enExtra;});
 html=html.replace("notAnswered:'Nessuna risposta',\n    ok:'OK'", ()=>{n++;return itExtra;});
 if(n!==2) throw new Error('UI patch failed');
-html=html.replace(/disclaimer:'This is an independent practice exam[^\n]*/, "disclaimer:'Independent practice exam for the B121 / BPT additional theory exam (OLR 2). These are not the official asa questions. The correct answer is shown right after each answer. Exam format (30 questions, 3 options, max. 3 mistakes, 45 minutes) matches the official exam.',");
-html=html.replace(/disclaimer:'Questo è un esame di prova indipendente[^\n]*/, "disclaimer:'Esame di prova indipendente per l\\'esame di teoria complementare B121 / TPP (OLR 2). Non sono le domande ufficiali asa. La risposta corretta appare subito dopo ogni risposta. Il formato (30 domande, 3 risposte, max. 3 errori, 45 minuti) corrisponde all\\'esame ufficiale.',");
+html=html.replace(/disclaimer:'This is an independent practice exam[^\n]*/, "disclaimer:'Independent practice exam for the B121 / BPT additional theory exam (OLR 2). These are not the official asa questions. Exam format (30 questions, 3 options, max. 3 mistakes, 45 minutes) matches the official exam.',");
+html=html.replace(/disclaimer:'Questo è un esame di prova indipendente[^\n]*/, "disclaimer:'Esame di prova indipendente per l\\'esame di teoria complementare B121 / TPP (OLR 2). Non sono le domande ufficiali asa. Il formato (30 domande, 3 risposte, max. 3 errori, 45 minuti) corrisponde all\\'esame ufficiale.',");
 const parts=['pool.js'].map(f=>fs.readFileSync(__dirname+'/'+f,'utf8')).join('\n');
 html+=`/* ================= QUESTION POOL — correct answer always index 0, shuffled at runtime.
    c = topic (T Termini, P Portata, O Orari, C Controllo, V Varie); art = legal basis (OLR 2 unless stated).

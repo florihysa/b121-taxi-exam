@@ -7,14 +7,25 @@ const CRITICAL_S = 5*60;    // timer turns red
 const CATS = ['T','P','O','C','V'];
 const CAT_MIN = {T:3,P:3,O:7,C:9,V:0};
 const CASE_MIN = 5; // at least this many concrete-case questions (entries with vars) per exam
-const VERSION = 'v31 · 16.11.2026 · OLR 2 stato 01.03.2025';
+const VERSION = 'v32 · 16.11.2026 · OLR 2 stato 01.03.2025';
 
 /* ================= STATE ================= */
 let lang = localStorage.getItem('b121lang2') || null;
 let view = lang ? 'start' : 'lang';   // lang | start | exam | overview | result | train | trainresult
 let exam = null;
 let train = null;
-const instantFb = true;   // correct answer is always shown right after answering
+// Options chosen on the start page (remembered between visits)
+let optAll = localStorage.getItem('b121optN')==='all';   // false = 30 questions like the real exam, true = every question of the pool
+let optFb  = localStorage.getItem('b121optFb')!=='0';    // true = correct answer shown right after answering, false = mistakes are not shown
+function setOpt(k,v){
+  if(k==='n'){ optAll=(v==='all'); localStorage.setItem('b121optN', optAll?'all':'30'); }
+  else { optFb=(v==='1'); localStorage.setItem('b121optFb', optFb?'1':'0'); }
+  keepScroll=true; render();
+}
+// every question of the pool, each concrete case counted as its own question
+function allRows(){ const r=[]; POOL.forEach((P,p)=>{ if(P.vars) P.vars.forEach((_,v)=>r.push({p,v})); else r.push({p,v:null}); }); return r; }
+const maxMist = n => n===EXAM_N ? MAX_MISTAKES : Math.floor(n/10);   // same 10 % as the real exam
+const examSecs = n => n===EXAM_N ? EXAM_MIN*60 : n*90;               // same 90 seconds per question as the real exam
 const $ = id=>document.getElementById(id);
 const esc = s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 function shuffled(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
@@ -79,6 +90,8 @@ function poolCounts(){ const c={}; POOL.forEach(p=>{c[p.c]=(c[p.c]||0)+1;}); ret
 
 function renderStart(){
   const t=T(); const pc=poolCounts();
+  const nAll=allRows().length, N=optAll?nAll:EXAM_N;
+  const ob=(on,k,v,label)=>`<button class="pbtn optbtn ${on?'invert':''}" onclick="setOpt('${k}','${v}')">${esc(label)}</button>`;
   $('app').innerHTML = `
     <div class="header"></div>
     ${loginInfoBlock()}
@@ -90,11 +103,15 @@ function renderStart(){
       <div class="examtable">
         <table>
           <tr><td>${t.yourExam}</td><td>${t.catValue}<br>${t.oneAnswer}</td></tr>
-          <tr><td>${t.numQuestions}</td><td>${EXAM_N}</td></tr>
-          <tr><td>${t.maxScore}</td><td>${EXAM_N}</td></tr>
-          <tr><td>${t.maxMistakes}</td><td>${MAX_MISTAKES}</td></tr>
-          <tr><td>${t.time}</td><td>${t.minutes}</td></tr>
+          <tr><td>${t.numQuestions}</td><td>${N}</td></tr>
+          <tr><td>${t.maxScore}</td><td>${N}</td></tr>
+          <tr><td>${t.maxMistakes}</td><td>${maxMist(N)}</td></tr>
+          <tr><td>${t.time}</td><td>${optAll?t.minutesN(Math.round(examSecs(N)/60)):t.minutes}</td></tr>
         </table>
+      </div>
+      <div class="optblock">
+        <div class="optrow"><span class="optlabel">${t.numQuestions}</span><span class="optbtns">${ob(!optAll,'n','30',String(EXAM_N))}${ob(optAll,'n','all',t.nAll(nAll))}</span></div>
+        <div class="optrow"><span class="optlabel">${t.optAnswer}</span><span class="optbtns">${ob(optFb,'fb','1',t.fbNow)}${ob(!optFb,'fb','0',t.fbOff)}</span></div>
       </div>
       <button class="pbtn invert startbtn" onclick="startExam()">${t.startExam}</button>
 
@@ -115,11 +132,11 @@ function clearSaved(){ try{ localStorage.removeItem('b121exam'); }catch(e){} }
 function resumeExam(){
   try{
     const s=JSON.parse(localStorage.getItem('b121exam')||'null');
-    if(!s || !Array.isArray(s.qs) || s.qs.length!==EXAM_N || !Array.isArray(s.answers)) return false;
+    if(!s || !Array.isArray(s.qs) || s.qs.length<1 || !Array.isArray(s.answers) || s.answers.length!==s.qs.length) return false;
     if(s.ver!==VERSION){ clearSaved(); return false; }   // the pool changed: an old saved exam would point at other questions
     if(s.qs.some(q=>!POOL[q.p] || !Array.isArray(q.perm) || q.perm.length!==3)) { clearSaved(); return false; }
     const elapsed=Math.floor((Date.now()-(s.savedAt||Date.now()))/1000);
-    exam={qs:s.qs, answers:s.answers, marked:s.marked, cur:s.cur||0, total:s.total, left:Math.max(0, s.left-elapsed), fb:true, timerId:null};
+    exam={qs:s.qs, answers:s.answers, marked:s.marked, cur:s.cur||0, total:s.total, left:Math.max(0, s.left-elapsed), fb:s.fb!==false, timerId:null};
     view='exam';
     if(exam.left<=0){ exam.left=0; render(); finish(); return true; }
     exam.timerId=setInterval(tick, 1000);
@@ -145,15 +162,16 @@ function pickExam(){
 function startExam(){
   clearSaved();
   if(exam && exam.timerId) clearInterval(exam.timerId);
-  const picks = pickExam();
+  const rows = optAll ? shuffled(allRows()) : pickExam().map(p=>({p, v: pickVar(p)}));
+  const n = rows.length;
   exam = {
-    qs: picks.map(p=>({p, perm: shuffled([0,1,2]), v: pickVar(p)})),
-    answers: Array(EXAM_N).fill(null),
-    marked: Array(EXAM_N).fill(false),
+    qs: rows.map(r=>({p:r.p, perm: shuffled([0,1,2]), v:r.v})),
+    answers: Array(n).fill(null),
+    marked: Array(n).fill(false),
     cur: 0,
-    total: EXAM_MIN*60,
-    left: EXAM_MIN*60,
-    fb: true,
+    total: examSecs(n),
+    left: examSecs(n),
+    fb: optFb,
     timerId: null
   };
   exam.timerId = setInterval(tick, 1000);
@@ -175,8 +193,9 @@ function tick(){
   if(fill){ fill.style.width = (exam.left/exam.total*100)+'%'; }
 }
 function timeHTML(){
-  const m=Math.floor(exam.left/60), s=exam.left%60;
-  return `${T().remaining}&nbsp;<b>${m}:${String(s).padStart(2,'0')}</b>`;
+  const h=Math.floor(exam.left/3600), m=Math.floor(exam.left%3600/60), s=exam.left%60;
+  // exams longer than an hour (all questions) show h:mm:ss, the 45-minute exam shows m:ss as before
+  return `${T().remaining}&nbsp;<b>${exam.total>=3600 ? h+':'+String(m).padStart(2,'0') : m}:${String(s).padStart(2,'0')}</b>`;
 }
 
 /* ===== answer row renderers ===== */
@@ -210,7 +229,7 @@ function renderExam(){
       <div style="display:flex; align-items:center;">
         <div class="hstack">
           <div class="row questionBookmarked">${IC.bookmark}<span>${t.marked(markedCount)}</span></div>
-          <div class="row questionAnswered">${IC.check}<span>${answeredCount} / ${EXAM_N}</span></div>
+          <div class="row questionAnswered">${IC.check}<span>${answeredCount} / ${e.qs.length}</span></div>
         </div>
         <div class="timewrap">
           <div class="cut-time">
@@ -229,7 +248,7 @@ function renderExam(){
         <div class="exampage">
           <div class="content">
             <div class="title">
-              <span class="titleText">${t.question} ${e.cur+1} ${t.of} ${EXAM_N}</span>
+              <span class="titleText">${t.question} ${e.cur+1} ${t.of} ${e.qs.length}</span>
               <div class="flexspacer"></div>
               <button class="pbtn bookmarkbtn" onclick="toggleMark()">
                 ${IC.bookmark} <span>${e.marked[e.cur]?t.removeBookmark:t.bookmark}</span>
@@ -251,7 +270,7 @@ function renderExam(){
           </div>
         </div>
         <div class="self-center">
-          <button class="navbtn forward" onclick="nav(1)" ${e.cur===EXAM_N-1?'disabled':''}>${IC.chevR}</button>
+          <button class="navbtn forward" onclick="nav(1)" ${e.cur===e.qs.length-1?'disabled':''}>${IC.chevR}</button>
         </div>
       </div>
     </div>
@@ -275,6 +294,9 @@ function showExplain(){
   if(over>0) sp.scrollTop+=Math.max(0, Math.min(over, er.top-pr.top-8));
 }
 function choose(orig){
+  if(!exam.fb){   // mistakes hidden: nothing is revealed, and the answer can still be changed, as in the real exam
+    exam.answers[exam.cur] = orig; saveExam(); keepScroll=true; render(); return;
+  }
   if(exam.answers[exam.cur]!==null) return;   // locked after the first answer; the correct answer is shown immediately
   exam.answers[exam.cur] = orig;
   exam.justAnswered = true;
@@ -284,7 +306,7 @@ function choose(orig){
   showExplain();
 }
 function nav(d){
-  exam.cur=Math.min(EXAM_N-1,Math.max(0,exam.cur+d));
+  exam.cur=Math.min(exam.qs.length-1,Math.max(0,exam.cur+d));
   saveExam();
   render();
 }
@@ -374,9 +396,11 @@ function reviewBlock(qs, answers, marked){
 
 function renderResult(){
   const t=T(), e=exam;
+  const N=e.qs.length;
   const correct=e.answers.filter(a=>a===0).length;
-  const mistakes=EXAM_N-correct;
-  const pass=mistakes<=MAX_MISTAKES;
+  const mistakes=N-correct;
+  const pass=mistakes<=maxMist(N);
+  const showReview=e.fb||e.showReview;   // with mistakes hidden, the review opens only when asked for
   const mm=Math.floor(e.usedS/60), ss=e.usedS%60;
   $('app').innerHTML = `
     <div class="header"></div>
@@ -387,18 +411,18 @@ function renderResult(){
       <div class="verdict ${pass?'pass':'fail'}">${pass?t.passed:t.failed}</div>
       <div class="examtable">
         <table>
-          <tr><td>${t.score}</td><td>${correct} / ${EXAM_N}</td></tr>
-          <tr><td>${t.mistakes}</td><td>${mistakes} (max. ${MAX_MISTAKES})</td></tr>
+          <tr><td>${t.score}</td><td>${correct} / ${N}</td></tr>
+          <tr><td>${t.mistakes}</td><td>${mistakes} (max. ${maxMist(N)})</td></tr>
           <tr><td>${t.time}</td><td>${mm}:${String(ss).padStart(2,'0')}</td></tr>
         </table>
       </div>
       <button class="pbtn invert" style="margin-top:26px;" onclick="startExam()">${t.newExam}</button>
       <button class="pbtn" style="margin-top:26px;" onclick="view='start';render()">${t.exit}</button>
 
-      <div class="reviewwrap">
+      ${showReview ? `<div class="reviewwrap">
         <h2>${t.review}</h2><div style="font-size:13px; color:var(--night-rider); margin:8px 0 2px; line-height:1.6;">${t.legend}</div>
         ${reviewBlock(e.qs, e.answers, e.marked)}
-      </div>
+      </div>` : `<div style="margin-top:26px;"><button class="pbtn" id="showreviewbtn" onclick="exam.showReview=true;keepScroll=true;render()">${t.showReview}</button></div>`}
     </div>
     </div>
     <div class="footer justified">

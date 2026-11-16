@@ -237,6 +237,12 @@
   .explain li{margin:0; padding:0;}
   .explain li.hint{margin-top:8px; font-weight:600;}
   .explain li::marker{color:var(--mariner);}
+  /* ===== start page options ===== */
+  .optblock{max-width:760px; margin:6px auto 0; text-align:left; font-size:14px;}
+  .optrow{display:flex; flex-wrap:wrap; align-items:center; gap:8px 14px; margin-top:14px;}
+  .optlabel{font-weight:700;}
+  .optbtns{display:inline-flex; flex-wrap:wrap; gap:8px;}
+  .pbtn.optbtn{padding:8px 12px; min-width:0;}
   /* ===== theme toggle ===== */
   .fgroup{display:inline-flex; gap:8px; align-items:center;}
   .pbtn.themebtn{min-width:0; padding:10px;}
@@ -296,7 +302,7 @@ const UI = {
     selectLang:['Selektieren Sie eine Sprache','Select a language','Seleziona una lingua'],
     startTitle:'Start of the exam',
     goodLuck:'The exam has a time limit. Good luck!',
-    disclaimer:'Independent practice exam for the B121 / BPT additional theory exam (OLR 2). These are not the official asa questions. The correct answer is shown right after each answer. Exam format (30 questions, 3 options, max. 3 mistakes, 45 minutes) matches the official exam.',
+    disclaimer:'Independent practice exam for the B121 / BPT additional theory exam (OLR 2). These are not the official asa questions. Exam format (30 questions, 3 options, max. 3 mistakes, 45 minutes) matches the official exam.',
     yourExam:'Your exam:', catValue:'Category B121 (BPT) — OLR 2 / SR 822.222',
     oneAnswer:'Only one answer per question is correct.',
     numQuestions:'Number of questions:', maxScore:'Max. score:', maxMistakes:'Max. mistakes:', time:'Time:',
@@ -325,14 +331,15 @@ const UI = {
     ],
     notAnswered:'Not answered',
     ok:'OK', cat:{T:'Terms',P:'Scope',O:'Working, driving & rest time',C:'Checks',V:'Misc.'}, exit:'Back to start',
-    training:'',trainingDesc:'',allTopics:'',instantFeedback:'',fbOn:'',realMode:'',next:'Next',finishTraining:'',trainingResult:'',correctCount:'',wrongCount:'',byTopic:'',correctLbl:'',questionsLbl:'',restart:'',poolInfo:n=>''
+    training:'',trainingDesc:'',allTopics:'',instantFeedback:'',fbOn:'',realMode:'',next:'Next',finishTraining:'',trainingResult:'',correctCount:'',wrongCount:'',byTopic:'',correctLbl:'',questionsLbl:'',restart:'',poolInfo:n=>'',
+    optAnswer:'Correct answer:', fbNow:'Right after each answer', fbOff:'Do not show mistakes', nAll:n=>'All ('+n+')', minutesN:n=>n+' minutes', showReview:'Show review'
   },
   it:{
     loggedIn:'Connesso:', category:'Categoria:', device:'Dispositivo:',
     selectLang:['Selektieren Sie eine Sprache','Select a language','Seleziona una lingua'],
     startTitle:'Inizio esame',
     goodLuck:'L\'esame ha un limite di tempo. Buona fortuna!',
-    disclaimer:'Esame di prova indipendente per l\'esame di teoria complementare B121 / TPP (OLR 2). Non sono le domande ufficiali asa. La risposta corretta appare subito dopo ogni risposta. Il formato (30 domande, 3 risposte, max. 3 errori, 45 minuti) corrisponde all\'esame ufficiale.',
+    disclaimer:'Esame di prova indipendente per l\'esame di teoria complementare B121 / TPP (OLR 2). Non sono le domande ufficiali asa. Il formato (30 domande, 3 risposte, max. 3 errori, 45 minuti) corrisponde all\'esame ufficiale.',
     yourExam:'Il vostro esame:', catValue:'Categoria B121 (TPP) — OLR2 / RS 822.222',
     oneAnswer:'Per ogni domanda, una sola risposta è corretta.',
     numQuestions:'Numero delle domande:', maxScore:'Punteggio massimo:', maxMistakes:'Punteggio degli errori massimi:', time:'Tempo:',
@@ -361,7 +368,8 @@ const UI = {
     ],
     notAnswered:'Nessuna risposta',
     ok:'OK', cat:{T:'Termini',P:'Portata',O:'Orari',C:'Controllo',V:'Varie'}, exit:'Torna all\'inizio',
-    training:'',trainingDesc:'',allTopics:'',instantFeedback:'',fbOn:'',realMode:'',next:'Avanti',finishTraining:'',trainingResult:'',correctCount:'',wrongCount:'',byTopic:'',correctLbl:'',questionsLbl:'',restart:'',poolInfo:n=>''
+    training:'',trainingDesc:'',allTopics:'',instantFeedback:'',fbOn:'',realMode:'',next:'Avanti',finishTraining:'',trainingResult:'',correctCount:'',wrongCount:'',byTopic:'',correctLbl:'',questionsLbl:'',restart:'',poolInfo:n=>'',
+    optAnswer:'Risposta corretta:', fbNow:'Subito dopo ogni risposta', fbOff:'Non mostrare gli errori', nAll:n=>'Tutte ('+n+')', minutesN:n=>n+' minuti', showReview:'Mostra la revisione'
   }
 };
 
@@ -538,7 +546,6 @@ const POOL = [
 {"c":"C","art":"Art. 22 cpv. 3-4","it":{"q":"Cosa deve mettere a disposizione del conducente il datore di lavoro?","a":["Libretto di lavoro, chiavi e dischi del tachigrafo","Libretto di lavoro e un tachigrafo di riserva","Chiavi e dischi; il libretto lo compra il conducente"]},"en":{"q":"What must the employer make available to the driver?","a":["Work record book, tachograph keys and sheets","Work record book and a spare tachograph","Keys and sheets; the driver buys the book"]},"x":{"it":"Il datore di lavoro deve fornire al conducente tutto ciò che serve per registrare i tempi: il libretto di lavoro, le chiavi del tachigrafo e i dischi. Il conducente non deve comprarli.","en":"The employer must give the driver everything needed to record the times: the work record book, the tachograph keys and the sheets. The driver does not have to buy them."},"src":"add63"},
 {"c":"C","art":"Art. 23 cpv. 1-2","it":{"q":"L'autorità d'esecuzione chiede informazioni e vuole accedere all'azienda per un controllo. Il datore di lavoro può rifiutare?","a":["No, deve informare e permettere l'accesso","Sì, se manca un mandato scritto del giudice","Sì, se tutti i conducenti sono indipendenti"]},"en":{"q":"The enforcement authority asks for information and wants access to the business for a check. May the employer refuse?","a":["No, they must give information and allow access","Yes, if there is no written court warrant","Yes, if all the drivers are self-employed"]},"x":{"it":"Il datore di lavoro è obbligato a collaborare ai controlli: deve dare all'autorità tutte le informazioni necessarie e lasciarla entrare in azienda. Non serve un mandato del giudice.","en":"The employer is obliged to cooperate with checks: they must give the authority all necessary information and let it enter the business. No court warrant is needed."},"src":"add64"},
 {"c":"C","art":"Art. 28 cpv. 4","it":{"q":"Un datore di lavoro induce un conducente a violare l'OLR 2, oppure non lo impedisce pur potendolo. Quale pena rischia?","a":["La stessa pena prevista per il conducente","Nessuna pena: risponde soltanto il conducente","Una pena più lieve di quella del conducente"]},"en":{"q":"An employer induces a driver to violate the OLR 2, or fails to prevent it although they could. What penalty do they risk?","a":["The same penalty as the driver","No penalty: only the driver is liable","A lighter penalty than the driver's"]},"x":{"it":"Chi spinge un conducente a violare le regole, o non lo impedisce pur potendo, è responsabile quanto lui e riceve la stessa pena. Per il lavoratore il giudice può invece ridurre la pena.","en":"Anyone who pushes a driver to break the rules, or fails to prevent it when they could, is as responsible as the driver and gets the same penalty. For the employee, by contrast, the judge may reduce the penalty."},"src":"add65"},
-{"c":"C","art":"Art. 29-32","it":{"q":"Chi è competente per il perseguimento penale delle violazioni dell'OLR 2 e chi vigila sull'applicazione dell'ordinanza?","a":["I Cantoni perseguono; l'USTRA vigila","L'USTRA persegue; i Cantoni vigilano","I Comuni perseguono; il DATEC vigila"]},"en":{"q":"Who prosecutes OLR 2 violations and who supervises the enforcement of the ordinance?","a":["Cantons prosecute; Federal Roads Office supervises","Federal Roads Office prosecutes; cantons supervise","Municipalities prosecute; DETEC supervises"]},"x":{"it":"I Cantoni fanno i controlli e perseguono le violazioni. L'USTRA (Ufficio federale delle strade) esercita la sovrintendenza, cioè sorveglia dall'alto come viene applicata l'ordinanza.","en":"The cantons carry out the checks and prosecute violations. The Federal Roads Office supervises, meaning it oversees from above how the ordinance is applied."},"src":"add66"},
 {"c":"P","art":"Art. 3 cpv. 2","it":{"q":"Esegui un trasporto all'estero con un taxi immatricolato in Svizzera che ha al massimo 8 posti oltre al conducente. Quale ordinanza vale per te?","a":["L'OLR 2, salvo accordi internazionali più severi","L'OLR 1, salvo accordi internazionali più severi","Soltanto gli accordi internazionali"]},"en":{"q":"You carry out a trip abroad with a Swiss-registered taxi that has at most 8 seats besides the driver. Which ordinance applies to you?","a":["The OLR 2, unless international rules are stricter","The OLR 1, unless international rules are stricter","Only the international agreements"]},"x":{"it":"Con al massimo 8 posti oltre al conducente l'OLR 2 ti segue anche all'estero. Solo se un accordo internazionale ratificato dalla Svizzera è più severo, vale quello.","en":"With at most 8 seats besides the driver, OLR 2 follows you abroad too. Only if an international agreement ratified by Switzerland is stricter does that apply instead."},"src":"add74"},
 {"c":"C","art":"Art. 22 cpv. 3","it":{"q":"Il tachigrafo del taxi è difettoso. Il conducente può ripararlo da sé?","a":["No, deve annunciare il difetto al datore di lavoro","Sì, se è stato istruito e annuncia la riparazione","Sì, purché torni a funzionare entro la giornata"]},"en":{"q":"The taxi's tachograph is defective. May the driver repair it themselves?","a":["No, they must report the defect to the employer","Yes, if trained for it and they report the repair","Yes, provided it works again by the end of the day"]},"x":{"it":"Il tachigrafo è sigillato e può essere riparato solo da un'officina autorizzata. Il conducente non lo tocca: segnala il difetto al datore di lavoro il più presto possibile.","en":"The tachograph is sealed and may be repaired only by an authorised workshop. The driver does not touch it: they report the defect to the employer as soon as possible."},"src":"add75"},
 {"c":"O","art":"Art. 11 cpv. 1","it":{"q":"Come deve collocarsi il riposo quotidiano rispetto al giorno di riposo settimanale di un lavoratore?","a":["Subito prima o subito dopo il giorno di riposo","Sempre subito prima del giorno di riposo","Sempre subito dopo il giorno di riposo"]},"en":{"q":"How must the daily rest be placed in relation to an employee's weekly rest day?","a":["Immediately before or after the rest day","Always immediately before the rest day","Always immediately after the rest day"]},"x":{"it":"Il riposo quotidiano va attaccato al giorno di riposo, ma può stare sia prima sia dopo. Così il lavoratore ha almeno 24 + 11 = 35 ore libere di seguito (33 con il riposo ridotto).","en":"The daily rest must be attached to the rest day, but it can come either before or after. That gives the employee at least 24 + 11 = 35 hours off in a row (33 with reduced rest)."},"src":"add76"},
@@ -623,14 +630,25 @@ const CRITICAL_S = 5*60;    // timer turns red
 const CATS = ['T','P','O','C','V'];
 const CAT_MIN = {T:3,P:3,O:7,C:9,V:0};
 const CASE_MIN = 5; // at least this many concrete-case questions (entries with vars) per exam
-const VERSION = 'v31 · 16.11.2026 · OLR 2 stato 01.03.2025';
+const VERSION = 'v32 · 16.11.2026 · OLR 2 stato 01.03.2025';
 
 /* ================= STATE ================= */
 let lang = localStorage.getItem('b121lang2') || null;
 let view = lang ? 'start' : 'lang';   // lang | start | exam | overview | result | train | trainresult
 let exam = null;
 let train = null;
-const instantFb = true;   // correct answer is always shown right after answering
+// Options chosen on the start page (remembered between visits)
+let optAll = localStorage.getItem('b121optN')==='all';   // false = 30 questions like the real exam, true = every question of the pool
+let optFb  = localStorage.getItem('b121optFb')!=='0';    // true = correct answer shown right after answering, false = mistakes are not shown
+function setOpt(k,v){
+  if(k==='n'){ optAll=(v==='all'); localStorage.setItem('b121optN', optAll?'all':'30'); }
+  else { optFb=(v==='1'); localStorage.setItem('b121optFb', optFb?'1':'0'); }
+  keepScroll=true; render();
+}
+// every question of the pool, each concrete case counted as its own question
+function allRows(){ const r=[]; POOL.forEach((P,p)=>{ if(P.vars) P.vars.forEach((_,v)=>r.push({p,v})); else r.push({p,v:null}); }); return r; }
+const maxMist = n => n===EXAM_N ? MAX_MISTAKES : Math.floor(n/10);   // same 10 % as the real exam
+const examSecs = n => n===EXAM_N ? EXAM_MIN*60 : n*90;               // same 90 seconds per question as the real exam
 const $ = id=>document.getElementById(id);
 const esc = s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 function shuffled(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
@@ -695,6 +713,8 @@ function poolCounts(){ const c={}; POOL.forEach(p=>{c[p.c]=(c[p.c]||0)+1;}); ret
 
 function renderStart(){
   const t=T(); const pc=poolCounts();
+  const nAll=allRows().length, N=optAll?nAll:EXAM_N;
+  const ob=(on,k,v,label)=>`<button class="pbtn optbtn ${on?'invert':''}" onclick="setOpt('${k}','${v}')">${esc(label)}</button>`;
   $('app').innerHTML = `
     <div class="header"></div>
     ${loginInfoBlock()}
@@ -706,11 +726,15 @@ function renderStart(){
       <div class="examtable">
         <table>
           <tr><td>${t.yourExam}</td><td>${t.catValue}<br>${t.oneAnswer}</td></tr>
-          <tr><td>${t.numQuestions}</td><td>${EXAM_N}</td></tr>
-          <tr><td>${t.maxScore}</td><td>${EXAM_N}</td></tr>
-          <tr><td>${t.maxMistakes}</td><td>${MAX_MISTAKES}</td></tr>
-          <tr><td>${t.time}</td><td>${t.minutes}</td></tr>
+          <tr><td>${t.numQuestions}</td><td>${N}</td></tr>
+          <tr><td>${t.maxScore}</td><td>${N}</td></tr>
+          <tr><td>${t.maxMistakes}</td><td>${maxMist(N)}</td></tr>
+          <tr><td>${t.time}</td><td>${optAll?t.minutesN(Math.round(examSecs(N)/60)):t.minutes}</td></tr>
         </table>
+      </div>
+      <div class="optblock">
+        <div class="optrow"><span class="optlabel">${t.numQuestions}</span><span class="optbtns">${ob(!optAll,'n','30',String(EXAM_N))}${ob(optAll,'n','all',t.nAll(nAll))}</span></div>
+        <div class="optrow"><span class="optlabel">${t.optAnswer}</span><span class="optbtns">${ob(optFb,'fb','1',t.fbNow)}${ob(!optFb,'fb','0',t.fbOff)}</span></div>
       </div>
       <button class="pbtn invert startbtn" onclick="startExam()">${t.startExam}</button>
 
@@ -731,11 +755,11 @@ function clearSaved(){ try{ localStorage.removeItem('b121exam'); }catch(e){} }
 function resumeExam(){
   try{
     const s=JSON.parse(localStorage.getItem('b121exam')||'null');
-    if(!s || !Array.isArray(s.qs) || s.qs.length!==EXAM_N || !Array.isArray(s.answers)) return false;
+    if(!s || !Array.isArray(s.qs) || s.qs.length<1 || !Array.isArray(s.answers) || s.answers.length!==s.qs.length) return false;
     if(s.ver!==VERSION){ clearSaved(); return false; }   // the pool changed: an old saved exam would point at other questions
     if(s.qs.some(q=>!POOL[q.p] || !Array.isArray(q.perm) || q.perm.length!==3)) { clearSaved(); return false; }
     const elapsed=Math.floor((Date.now()-(s.savedAt||Date.now()))/1000);
-    exam={qs:s.qs, answers:s.answers, marked:s.marked, cur:s.cur||0, total:s.total, left:Math.max(0, s.left-elapsed), fb:true, timerId:null};
+    exam={qs:s.qs, answers:s.answers, marked:s.marked, cur:s.cur||0, total:s.total, left:Math.max(0, s.left-elapsed), fb:s.fb!==false, timerId:null};
     view='exam';
     if(exam.left<=0){ exam.left=0; render(); finish(); return true; }
     exam.timerId=setInterval(tick, 1000);
@@ -761,15 +785,16 @@ function pickExam(){
 function startExam(){
   clearSaved();
   if(exam && exam.timerId) clearInterval(exam.timerId);
-  const picks = pickExam();
+  const rows = optAll ? shuffled(allRows()) : pickExam().map(p=>({p, v: pickVar(p)}));
+  const n = rows.length;
   exam = {
-    qs: picks.map(p=>({p, perm: shuffled([0,1,2]), v: pickVar(p)})),
-    answers: Array(EXAM_N).fill(null),
-    marked: Array(EXAM_N).fill(false),
+    qs: rows.map(r=>({p:r.p, perm: shuffled([0,1,2]), v:r.v})),
+    answers: Array(n).fill(null),
+    marked: Array(n).fill(false),
     cur: 0,
-    total: EXAM_MIN*60,
-    left: EXAM_MIN*60,
-    fb: true,
+    total: examSecs(n),
+    left: examSecs(n),
+    fb: optFb,
     timerId: null
   };
   exam.timerId = setInterval(tick, 1000);
@@ -791,8 +816,9 @@ function tick(){
   if(fill){ fill.style.width = (exam.left/exam.total*100)+'%'; }
 }
 function timeHTML(){
-  const m=Math.floor(exam.left/60), s=exam.left%60;
-  return `${T().remaining}&nbsp;<b>${m}:${String(s).padStart(2,'0')}</b>`;
+  const h=Math.floor(exam.left/3600), m=Math.floor(exam.left%3600/60), s=exam.left%60;
+  // exams longer than an hour (all questions) show h:mm:ss, the 45-minute exam shows m:ss as before
+  return `${T().remaining}&nbsp;<b>${exam.total>=3600 ? h+':'+String(m).padStart(2,'0') : m}:${String(s).padStart(2,'0')}</b>`;
 }
 
 /* ===== answer row renderers ===== */
@@ -826,7 +852,7 @@ function renderExam(){
       <div style="display:flex; align-items:center;">
         <div class="hstack">
           <div class="row questionBookmarked">${IC.bookmark}<span>${t.marked(markedCount)}</span></div>
-          <div class="row questionAnswered">${IC.check}<span>${answeredCount} / ${EXAM_N}</span></div>
+          <div class="row questionAnswered">${IC.check}<span>${answeredCount} / ${e.qs.length}</span></div>
         </div>
         <div class="timewrap">
           <div class="cut-time">
@@ -845,7 +871,7 @@ function renderExam(){
         <div class="exampage">
           <div class="content">
             <div class="title">
-              <span class="titleText">${t.question} ${e.cur+1} ${t.of} ${EXAM_N}</span>
+              <span class="titleText">${t.question} ${e.cur+1} ${t.of} ${e.qs.length}</span>
               <div class="flexspacer"></div>
               <button class="pbtn bookmarkbtn" onclick="toggleMark()">
                 ${IC.bookmark} <span>${e.marked[e.cur]?t.removeBookmark:t.bookmark}</span>
@@ -867,7 +893,7 @@ function renderExam(){
           </div>
         </div>
         <div class="self-center">
-          <button class="navbtn forward" onclick="nav(1)" ${e.cur===EXAM_N-1?'disabled':''}>${IC.chevR}</button>
+          <button class="navbtn forward" onclick="nav(1)" ${e.cur===e.qs.length-1?'disabled':''}>${IC.chevR}</button>
         </div>
       </div>
     </div>
@@ -891,6 +917,9 @@ function showExplain(){
   if(over>0) sp.scrollTop+=Math.max(0, Math.min(over, er.top-pr.top-8));
 }
 function choose(orig){
+  if(!exam.fb){   // mistakes hidden: nothing is revealed, and the answer can still be changed, as in the real exam
+    exam.answers[exam.cur] = orig; saveExam(); keepScroll=true; render(); return;
+  }
   if(exam.answers[exam.cur]!==null) return;   // locked after the first answer; the correct answer is shown immediately
   exam.answers[exam.cur] = orig;
   exam.justAnswered = true;
@@ -900,7 +929,7 @@ function choose(orig){
   showExplain();
 }
 function nav(d){
-  exam.cur=Math.min(EXAM_N-1,Math.max(0,exam.cur+d));
+  exam.cur=Math.min(exam.qs.length-1,Math.max(0,exam.cur+d));
   saveExam();
   render();
 }
@@ -990,9 +1019,11 @@ function reviewBlock(qs, answers, marked){
 
 function renderResult(){
   const t=T(), e=exam;
+  const N=e.qs.length;
   const correct=e.answers.filter(a=>a===0).length;
-  const mistakes=EXAM_N-correct;
-  const pass=mistakes<=MAX_MISTAKES;
+  const mistakes=N-correct;
+  const pass=mistakes<=maxMist(N);
+  const showReview=e.fb||e.showReview;   // with mistakes hidden, the review opens only when asked for
   const mm=Math.floor(e.usedS/60), ss=e.usedS%60;
   $('app').innerHTML = `
     <div class="header"></div>
@@ -1003,18 +1034,18 @@ function renderResult(){
       <div class="verdict ${pass?'pass':'fail'}">${pass?t.passed:t.failed}</div>
       <div class="examtable">
         <table>
-          <tr><td>${t.score}</td><td>${correct} / ${EXAM_N}</td></tr>
-          <tr><td>${t.mistakes}</td><td>${mistakes} (max. ${MAX_MISTAKES})</td></tr>
+          <tr><td>${t.score}</td><td>${correct} / ${N}</td></tr>
+          <tr><td>${t.mistakes}</td><td>${mistakes} (max. ${maxMist(N)})</td></tr>
           <tr><td>${t.time}</td><td>${mm}:${String(ss).padStart(2,'0')}</td></tr>
         </table>
       </div>
       <button class="pbtn invert" style="margin-top:26px;" onclick="startExam()">${t.newExam}</button>
       <button class="pbtn" style="margin-top:26px;" onclick="view='start';render()">${t.exit}</button>
 
-      <div class="reviewwrap">
+      ${showReview ? `<div class="reviewwrap">
         <h2>${t.review}</h2><div style="font-size:13px; color:var(--night-rider); margin:8px 0 2px; line-height:1.6;">${t.legend}</div>
         ${reviewBlock(e.qs, e.answers, e.marked)}
-      </div>
+      </div>` : `<div style="margin-top:26px;"><button class="pbtn" id="showreviewbtn" onclick="exam.showReview=true;keepScroll=true;render()">${t.showReview}</button></div>`}
     </div>
     </div>
     <div class="footer justified">
