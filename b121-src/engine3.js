@@ -6,8 +6,8 @@ const MAX_MISTAKES = 3;     // max errors allowed
 const CRITICAL_S = 5*60;    // timer turns red
 const CATS = ['T','P','O','C','V'];
 const CAT_MIN = {T:3,P:3,O:7,C:9,V:0};
-const CASE_MIN = 5; // at least this many concrete-case questions (entries with vars) per exam
-const VERSION = 'v36 · 17.11.2026 · OLR 2 stato 01.03.2025';
+const CASE_MIN = 0; // no forced story questions: the user had most of them removed (17.11.2026)
+const VERSION = 'v37 · 17.11.2026 · OLR 2 stato 01.03.2025';
 
 /* ================= STATE ================= */
 let lang = localStorage.getItem('b121lang2') || null;
